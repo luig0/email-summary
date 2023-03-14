@@ -18,6 +18,10 @@
     "plaid": "^12.5.0",
     "react": "18.2.0",
     "react-dom": "18.2.0",
+    "react-plaid-link": "^3.4.0",
     "typescript": "4.9.5"
+  },
+  "devDependencies": {
+    "@types/plaid-link": "^2.0.11"
   }
 }
