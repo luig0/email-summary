@@ -1,23 +1,7 @@
-import util from 'util';
-
 import type { NextApiRequest, NextApiResponse } from 'next';
-import {
-  Configuration,
-  PlaidApi,
-  Products,
-  PlaidEnvironments,
-  LinkTokenCreateRequest,
-  LinkTokenCreateResponse,
-  CountryCode,
-} from 'plaid';
+import { CountryCode, LinkTokenCreateRequest, LinkTokenCreateResponse, Products } from 'plaid';
 
-const prettyPrintResponse = (response: { [key: string]: any }) => {
-  console.log(util.inspect(response.data, { colors: true, depth: 4 }));
-};
-
-const PLAID_CLIENT_ID = process.env.PLAID_CLIENT_ID;
-const PLAID_SECRET = process.env.PLAID_SECRET;
-const PLAID_ENV = process.env.PLAID_ENV || 'sandbox';
+import client from '../../lib/PlaidApiClient';
 
 // PLAID_PRODUCTS is a comma-separated list of products to use when initializing
 // Link. Note that this list must contain 'assets' in order for the app to be
@@ -36,19 +20,6 @@ const PLAID_COUNTRY_CODES = (process.env.PLAID_COUNTRY_CODES || 'US').split(',')
 // this redirect URI for your client ID through the Plaid developer dashboard
 // at https://dashboard.plaid.com/team/api.
 const PLAID_REDIRECT_URI = process.env.PLAID_REDIRECT_URI || '';
-
-const configuration = new Configuration({
-  basePath: PlaidEnvironments[PLAID_ENV],
-  baseOptions: {
-    headers: {
-      'PLAID-CLIENT-ID': PLAID_CLIENT_ID,
-      'PLAID-SECRET': PLAID_SECRET,
-      'Plaid-Version': '2020-09-14',
-    },
-  },
-});
-
-const client = new PlaidApi(configuration);
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse<LinkTokenCreateResponse | string>) {
   if (req.method === 'POST') {
@@ -70,6 +41,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
     const createTokenResponse = await client.linkTokenCreate(configs);
     res.json(createTokenResponse.data);
   } else {
-    res.send(`${req.method} /api/create_link_token not allowed`);
+    res.send(`${req.method} not allowed`);
   }
 }
