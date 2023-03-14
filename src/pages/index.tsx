@@ -44,8 +44,12 @@ export default function Home() {
     const response = await fetch('/api/create_link_token', {
       method: 'POST',
     });
-    const data = await response.json();
-    setLinkToken(data.link_token);
+    if (response.ok) {
+      const data = await response.json();
+      setLinkToken(data.link_token);
+    } else {
+      console.log(response);
+    }
   };
 
   const [linkToken, setLinkToken] = useState(null);
