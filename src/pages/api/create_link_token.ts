@@ -50,23 +50,26 @@ const configuration = new Configuration({
 
 const client = new PlaidApi(configuration);
 
-export default async function handler(req: NextApiRequest, res: NextApiResponse<LinkTokenCreateResponse>) {
-  const configs: LinkTokenCreateRequest = {
-    user: {
-      // This should correspond to a unique id for the current user.
-      client_user_id: 'user-id',
-    },
-    client_name: 'Plaid Quickstart',
-    products: PLAID_PRODUCTS,
-    country_codes: PLAID_COUNTRY_CODES,
-    language: 'en',
-  };
+export default async function handler(req: NextApiRequest, res: NextApiResponse<LinkTokenCreateResponse | string>) {
+  if (req.method === 'POST') {
+    const configs: LinkTokenCreateRequest = {
+      user: {
+        // This should correspond to a unique id for the current user.
+        client_user_id: 'user-id',
+      },
+      client_name: 'Plaid Quickstart',
+      products: PLAID_PRODUCTS,
+      country_codes: PLAID_COUNTRY_CODES,
+      language: 'en',
+    };
 
-  if (PLAID_REDIRECT_URI !== '') {
-    configs.redirect_uri = PLAID_REDIRECT_URI;
+    if (PLAID_REDIRECT_URI !== '') {
+      configs.redirect_uri = PLAID_REDIRECT_URI;
+    }
+
+    const createTokenResponse = await client.linkTokenCreate(configs);
+    res.json(createTokenResponse.data);
+  } else {
+    res.send(`${req.method} /api/create_link_token not allowed`);
   }
-
-  const createTokenResponse = await client.linkTokenCreate(configs);
-  prettyPrintResponse(createTokenResponse);
-  res.json(createTokenResponse.data);
 }
