@@ -11,9 +11,9 @@ interface LinkProps {
   linkToken: string;
 }
 const Link: React.FC<LinkProps> = (props: LinkProps) => {
-  const onSuccess = useCallback((public_token: string, metadata: PlaidLinkOnSuccessMetadata) => {
+  const onSuccess = useCallback(async (public_token: string, metadata: PlaidLinkOnSuccessMetadata) => {
     // send public_token to server
-    const response = fetch('/api/set_access_token', {
+    const response = await fetch('/api/set_access_token', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -21,11 +21,12 @@ const Link: React.FC<LinkProps> = (props: LinkProps) => {
       body: JSON.stringify({ public_token }),
     });
     // Handle response ...
+    console.log('onSuccess, response data:', await response.json());
   }, []);
 
   const config: Parameters<typeof usePlaidLink>[0] = {
     token: props.linkToken,
-    receivedRedirectUri: window.location.href,
+    // receivedRedirectUri: window.location.href,
     onSuccess,
   };
 
