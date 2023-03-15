@@ -41,6 +41,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
     const createTokenResponse = await client.linkTokenCreate(configs);
     res.json(createTokenResponse.data);
   } else {
-    res.status(405);
+    res.status(405).send('Method Not Allowed');
   }
 }
