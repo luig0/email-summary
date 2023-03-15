@@ -1,63 +1,56 @@
 import Head from 'next/head';
 import styles from '@/styles/Home.module.css';
+import { useState } from 'react';
 
-import { useCallback, useEffect, useState } from 'react';
-import { usePlaidLink, PlaidLinkOnSuccessMetadata } from 'react-plaid-link';
+import LinkAccounts from '../components/LinkAccounts';
 
-// LINK COMPONENT
-// Use Plaid Link and pass link token and onSuccess function
-// in configuration to initialize Plaid Link
-interface LinkProps {
-  linkToken: string;
-}
-const Link: React.FC<LinkProps> = (props: LinkProps) => {
-  const onSuccess = useCallback(async (public_token: string, metadata: PlaidLinkOnSuccessMetadata) => {
-    // send public_token to server
-    const response = await fetch('/api/set_access_token', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ public_token }),
-    });
-    // Handle response ...
-    console.log('onSuccess, response data:', await response.json());
-  }, []);
+const App = () => {
+  const [loggedIn, setLoggedIn] = useState(false);
+  const [showLoginForm, setShowLoginForm] = useState(false);
+  const [showRegistrationForm, setShowRegistrationForm] = useState(false);
 
-  const config: Parameters<typeof usePlaidLink>[0] = {
-    token: props.linkToken,
-    // receivedRedirectUri: window.location.href,
-    onSuccess,
-  };
-
-  const { open, ready } = usePlaidLink(config);
-
-  return (
-    <button onClick={() => open()} disabled={!ready}>
-      Link account
-    </button>
-  );
+  if (loggedIn) {
+    return <LinkAccounts />;
+  } else {
+    return (
+      <div>
+        <div style={{ margin: '20px' }}>
+          <button
+            onClick={() => {
+              setShowRegistrationForm(false);
+              setShowLoginForm(true);
+            }}
+          >
+            Login
+          </button>
+          &nbsp;&nbsp;&nbsp;
+          <button
+            onClick={() => {
+              setShowLoginForm(false);
+              setShowRegistrationForm(true);
+            }}
+          >
+            Register
+          </button>
+        </div>
+        <div>
+          {showLoginForm && (
+            <div style={{ textAlign: 'center' }}>
+              <button onClick={() => setLoggedIn(true)}>Set logged in</button>
+            </div>
+          )}
+          {showRegistrationForm && (
+            <>
+              <div>Hello this is my registration form</div>
+            </>
+          )}
+        </div>
+      </div>
+    );
+  }
 };
 
 export default function Home() {
-  const generateToken = async () => {
-    const response = await fetch('/api/create_link_token', {
-      method: 'POST',
-    });
-    if (response.ok) {
-      const data = await response.json();
-      setLinkToken(data.link_token);
-    } else {
-      console.log(response);
-    }
-  };
-
-  const [linkToken, setLinkToken] = useState(null);
-
-  useEffect(() => {
-    generateToken();
-  }, []);
-
   return (
     <>
       <Head>
@@ -67,7 +60,7 @@ export default function Home() {
         <link rel="icon" href="/favicon.ico" />
       </Head>
       <main className={styles.main}>
-        {linkToken !== null ? <Link linkToken={linkToken} /> : <>Fetching link token. Please wait.</>}
+        <App />
       </main>
     </>
   );
