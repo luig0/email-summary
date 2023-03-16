@@ -19,7 +19,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       res.json({ public_token_exchange: 'complete' });
     } catch (error) {
       // handle error
-      res.status(500);
+      res.status(500).send('Server error');
     }
   } else {
     res.status(405).send('Method Not Allowed');
