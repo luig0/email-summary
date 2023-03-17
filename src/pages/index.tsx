@@ -4,6 +4,55 @@ import { useState } from 'react';
 
 import LinkAccounts from '../components/LinkAccounts';
 
+interface LoginFormProps {
+  setLoggedIn: (arg: boolean) => void;
+  setShowLoginForm: (arg: boolean) => void;
+}
+
+const LoginForm = (props: LoginFormProps) => {
+  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    const username = (document.getElementById('username') as HTMLInputElement)?.value;
+    const password = (document.getElementById('password') as HTMLInputElement)?.value;
+
+    const res = await fetch('/api/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ username, password }),
+    });
+
+    setLoginStatus(`${res.status} ${res.statusText}`);
+
+    if (res.status === 200 && res.statusText === 'OK') setLoggedIn(true);
+  };
+
+  const { setLoggedIn, setShowLoginForm } = props;
+  const [loginStatus, setLoginStatus] = useState('');
+
+  return (
+    <div style={{ textAlign: 'center', height: '400px' }}>
+      <form onSubmit={handleSubmit}>
+        <fieldset className={styles.fieldset}>
+          <label>
+            Username: <input type="text" name="username" id="username" />
+          </label>
+          <br />
+          <label>
+            Password: <input type="password" name="password" id="password" />
+          </label>
+          <br />
+        </fieldset>
+        <input type="submit" value="Submit" />
+        <input type="button" value="Cancel" onClick={() => setShowLoginForm(false)} />
+      </form>
+      <br />
+      {loginStatus.length > 0 && <span>{loginStatus}</span>}
+      <br />
+      <button onClick={() => setLoggedIn(true)}>Set logged in</button>
+    </div>
+  );
+};
+
 const App = () => {
   const [loggedIn, setLoggedIn] = useState(false);
   const [showLoginForm, setShowLoginForm] = useState(false);
@@ -14,7 +63,7 @@ const App = () => {
   } else {
     return (
       <div>
-        <div style={{ margin: '20px' }}>
+        <div style={{ margin: '20px', textAlign: 'center' }}>
           <button
             onClick={() => {
               setShowRegistrationForm(false);
@@ -23,7 +72,6 @@ const App = () => {
           >
             Login
           </button>
-          &nbsp;&nbsp;&nbsp;
           <button
             onClick={() => {
               setShowLoginForm(false);
@@ -34,11 +82,7 @@ const App = () => {
           </button>
         </div>
         <div>
-          {showLoginForm && (
-            <div style={{ textAlign: 'center' }}>
-              <button onClick={() => setLoggedIn(true)}>Set logged in</button>
-            </div>
-          )}
+          {showLoginForm && <LoginForm setLoggedIn={setLoggedIn} setShowLoginForm={setShowLoginForm} />}
           {showRegistrationForm && (
             <>
               <div>Hello this is my registration form</div>

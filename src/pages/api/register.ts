@@ -18,6 +18,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     try {
       const passwordHash = await bcrypt.hash(password, SALT_ROUNDS);
 
+      // TODO: check if user already exists
       await db.run(
         `
         INSERT INTO users (username, password_hash, date_created, date_modified)
@@ -29,7 +30,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       res.status(200).send('Registration successful');
     } catch (err) {
       console.log('register.ts error:', err);
-      res.status(500).send('Registration error');
+      res.status(500).send('Server error');
     }
   } else {
     res.status(405).send('Method Not Allowed');
