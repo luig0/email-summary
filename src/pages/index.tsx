@@ -72,7 +72,7 @@ const RegistrationForm = (props: FormProps) => {
       setLoginStatus(`${res.status} ${res.statusText}`);
     }
 
-    // if (res.status === 200 && res.statusText === 'OK') setLoggedIn(true);
+    if (res.status === 200 && res.statusText === 'OK') setLoggedIn(true);
   };
 
   const { setLoggedIn, setShowLoginForm } = props;
