@@ -25,11 +25,9 @@ const db = new sqlite3.Database(path.resolve(__dirname, '..', '..', '..', '..', 
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         session_token TEXT NOT NULL UNIQUE,
         user_id INTEGER NOT NULL,
-        username TEXT NOT NULL,
         date_created TEXT NOT NULL,
         expires_at TEXT NOT NULL,
-        FOREIGN KEY (user_id) REFERENCES users(id),
-        FOREIGN KEY (username) REFERENCES users(username)
+        FOREIGN KEY (user_id) REFERENCES users(id)
       );
     `;
 
