@@ -1,7 +1,7 @@
 import bcrypt from 'bcrypt';
 import type { NextApiRequest, NextApiResponse } from 'next';
 
-import * as db from '../../lib/AppDAO';
+import * as db from '../../lib/database/AppDAO';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method === 'POST') {
@@ -23,7 +23,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       return res.status(200).send('OK');
     } catch (err) {
       console.log('login.ts error:', err);
-      return res.status(500).send('Server error');
+      return res.status(500).send('Internal Server Error');
     }
   } else {
     return res.status(405).send('Method Not Allowed');

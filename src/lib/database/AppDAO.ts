@@ -11,7 +11,7 @@ const db = new sqlite3.Database(path.resolve(__dirname, '..', '..', '..', '..', 
     const createUsersTable = `
       CREATE TABLE IF NOT EXISTS users (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
-        username TEXT NOT NULL,
+        username TEXT NOT NULL UNIQUE,
         password_hash TEXT NOT NULL,
         date_created TEXT NOT NULL,
         date_modified TEXT
@@ -20,10 +20,25 @@ const db = new sqlite3.Database(path.resolve(__dirname, '..', '..', '..', '..', 
 
     await db.run(createUsersTable);
 
+    const createSessionsTable = `
+      CREATE TABLE IF NOT EXISTS sessions (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        session_token TEXT NOT NULL UNIQUE,
+        user_id INTEGER NOT NULL,
+        username TEXT NOT NULL,
+        date_created TEXT NOT NULL,
+        expires_at TEXT NOT NULL,
+        FOREIGN KEY (user_id) REFERENCES users(id),
+        FOREIGN KEY (username) REFERENCES users(username)
+      );
+    `;
+
+    await db.run(createSessionsTable);
+
     const createAccessTokensTable = `
       CREATE TABLE IF NOT EXISTS access_tokens (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
-        user_id INTEGER,
+        user_id INTEGER NOT NULL,
         access_token TEXT NOT NULL,
         date_created TEXT NOT NULL,
         date_modified TEXT,
