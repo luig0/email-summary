@@ -4,12 +4,12 @@ import { useState } from 'react';
 
 import LinkAccounts from '../components/LinkAccounts';
 
-interface LoginFormProps {
+interface FormProps {
   setLoggedIn: (arg: boolean) => void;
   setShowLoginForm: (arg: boolean) => void;
 }
 
-const LoginForm = (props: LoginFormProps) => {
+const LoginForm = (props: FormProps) => {
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     const username = (document.getElementById('username') as HTMLInputElement)?.value;
@@ -53,6 +53,60 @@ const LoginForm = (props: LoginFormProps) => {
   );
 };
 
+const RegistrationForm = (props: FormProps) => {
+  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    const username = (document.getElementById('username') as HTMLInputElement)?.value;
+    const password = (document.getElementById('password') as HTMLInputElement)?.value;
+    const inviteCode = (document.getElementById('invite-code') as HTMLInputElement)?.value;
+
+    const res = await fetch('/api/register', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ username, password, inviteCode }),
+    });
+
+    if (res.status === 409) {
+      setLoginStatus('That username is already taken!');
+    } else {
+      setLoginStatus(`${res.status} ${res.statusText}`);
+    }
+
+    // if (res.status === 200 && res.statusText === 'OK') setLoggedIn(true);
+  };
+
+  const { setLoggedIn, setShowLoginForm } = props;
+  const [loginStatus, setLoginStatus] = useState('');
+
+  return (
+    <div style={{ textAlign: 'center', height: '400px' }}>
+      <form onSubmit={handleSubmit}>
+        <fieldset className={styles.fieldset}>
+          <label>
+            Username: <input type="text" name="username" id="username" />
+          </label>
+          <br />
+          <label>
+            Password: <input type="password" name="password" id="password" />
+          </label>
+          <br />
+          <label>
+            Invitation Code: <input type="text" name="invite-code" id="invite-code" />
+          </label>
+          <br />
+        </fieldset>
+        <input type="submit" value="Submit" />
+        <input type="button" value="Cancel" onClick={() => setShowLoginForm(false)} />
+      </form>
+      <br />
+      {loginStatus.length > 0 && <span>{loginStatus}</span>}
+      <br />
+      <br />
+      <button onClick={() => setLoggedIn(true)}>Set logged in</button>
+    </div>
+  );
+};
+
 const App = () => {
   const [loggedIn, setLoggedIn] = useState(false);
   const [showLoginForm, setShowLoginForm] = useState(false);
@@ -83,11 +137,7 @@ const App = () => {
         </div>
         <div>
           {showLoginForm && <LoginForm setLoggedIn={setLoggedIn} setShowLoginForm={setShowLoginForm} />}
-          {showRegistrationForm && (
-            <>
-              <div>Hello this is my registration form</div>
-            </>
-          )}
+          {showRegistrationForm && <RegistrationForm setLoggedIn={setLoggedIn} setShowLoginForm={setShowLoginForm} />}
         </div>
       </div>
     );

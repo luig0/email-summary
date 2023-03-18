@@ -73,6 +73,6 @@ export async function createUser(username: string, passwordHash: string): Promis
       throw new Error(messages.INTERNAL_SERVER_ERROR);
     }
   } else {
-    throw new Error(messages.USERNAME_ALREADY_IN_USE);
+    throw new Error(messages.USERNAME_ALREADY_TAKEN);
   }
 }
