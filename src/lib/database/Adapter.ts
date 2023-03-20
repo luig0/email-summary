@@ -58,7 +58,7 @@ async function hasUser(username: string): Promise<boolean> {
   return !!result;
 }
 
-export async function createUser(username: string, passwordHash: string): Promise<boolean> {
+export async function createUser(username: string, passwordHash: string): Promise<void> {
   if (!(await hasUser(username))) {
     try {
       const result = await dao.run(
@@ -69,7 +69,7 @@ export async function createUser(username: string, passwordHash: string): Promis
         [username, passwordHash, new Date().toISOString(), null]
       );
 
-      return !!result;
+      if (!result) throw new Error('Failed to create user');
     } catch (error) {
       console.log('Adapter.ts error:', error);
       throw new Error(messages.INTERNAL_SERVER_ERROR);

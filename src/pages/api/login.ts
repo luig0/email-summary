@@ -12,8 +12,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     if (!username || !password) res.status(400);
 
-    console.log('username:', username);
-
     try {
       const dbUser = await db.getDbUser(username);
 

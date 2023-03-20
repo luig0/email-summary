@@ -12,12 +12,11 @@ interface AppProps {
   username?: string;
 }
 
-interface FormProps {
-  setLoggedIn: (arg: boolean) => void;
+interface LoginFormProps {
   setShowLoginForm: (arg: boolean) => void;
 }
 
-const LoginForm = (props: FormProps) => {
+const LoginForm = (props: LoginFormProps) => {
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     const username = (document.getElementById('username') as HTMLInputElement)?.value;
@@ -31,10 +30,10 @@ const LoginForm = (props: FormProps) => {
 
     setLoginStatus(`${res.status} ${res.statusText}`);
 
-    if (res.status === 200 && res.statusText === 'OK') setLoggedIn(true);
+    if (res.status === 200 && res.statusText === 'OK') location.reload();
   };
 
-  const { setLoggedIn, setShowLoginForm } = props;
+  const { setShowLoginForm } = props;
   const [loginStatus, setLoginStatus] = useState('');
 
   return (
@@ -55,13 +54,15 @@ const LoginForm = (props: FormProps) => {
       </form>
       <br />
       {loginStatus.length > 0 && <span>{loginStatus}</span>}
-      <br />
-      <button onClick={() => setLoggedIn(true)}>Set logged in</button>
     </div>
   );
 };
 
-const RegistrationForm = (props: FormProps) => {
+interface RegistrationFormProps {
+  setShowRegistrationForm: (arg: boolean) => void;
+}
+
+const RegistrationForm = (props: RegistrationFormProps) => {
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     const username = (document.getElementById('username') as HTMLInputElement)?.value;
@@ -80,10 +81,10 @@ const RegistrationForm = (props: FormProps) => {
       setLoginStatus(`${res.status} ${res.statusText}`);
     }
 
-    if (res.status === 200 && res.statusText === 'OK') setLoggedIn(true);
+    if (res.status === 200 && res.statusText === 'OK') location.reload();
   };
 
-  const { setLoggedIn, setShowLoginForm } = props;
+  const { setShowRegistrationForm } = props;
   const [loginStatus, setLoginStatus] = useState('');
 
   return (
@@ -104,13 +105,10 @@ const RegistrationForm = (props: FormProps) => {
           <br />
         </fieldset>
         <input type="submit" value="Submit" />
-        <input type="button" value="Cancel" onClick={() => setShowLoginForm(false)} />
+        <input type="button" value="Cancel" onClick={() => setShowRegistrationForm(false)} />
       </form>
       <br />
       {loginStatus.length > 0 && <span>{loginStatus}</span>}
-      <br />
-      <br />
-      <button onClick={() => setLoggedIn(true)}>Set logged in</button>
     </div>
   );
 };
@@ -151,7 +149,7 @@ const App = (props: AppProps) => {
         </div>
         <div>
           {showLoginForm && <LoginForm setLoggedIn={setLoggedIn} setShowLoginForm={setShowLoginForm} />}
-          {showRegistrationForm && <RegistrationForm setLoggedIn={setLoggedIn} setShowLoginForm={setShowLoginForm} />}
+          {showRegistrationForm && <RegistrationForm setShowRegistrationForm={setShowRegistrationForm} />}
         </div>
       </div>
     );
@@ -163,10 +161,12 @@ export const getServerSideProps: GetServerSideProps<AppProps> = async (context) 
   const props: AppProps = { loggedIn: false };
 
   const sessionToken = req.cookies['session-token'];
-  // console.log('sessionToken:', sessionToken);
 
   let username;
-  if (sessionToken) username = (await db.getSessionAndUser(sessionToken)).username;
+  if (sessionToken) {
+    const result = await db.getSessionAndUser(sessionToken);
+    username = result.username;
+  }
 
   if (username) {
     props.loggedIn = true;

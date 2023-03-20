@@ -17,19 +17,17 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     try {
       const passwordHash = await bcrypt.hash(password, SALT_ROUNDS);
-      const result = await db.createUser(username, passwordHash);
+      await db.createUser(username, passwordHash);
 
-      if (result) {
-        const expiresAt = new Date(new Date().getTime() + SESSION_EXPIRY_PERIOD);
-        const sessionToken = await db.createSession(username, expiresAt);
+      const expiresAt = new Date(new Date().getTime() + SESSION_EXPIRY_PERIOD);
+      const sessionToken = await db.createSession(username, expiresAt);
 
-        res.setHeader(
-          'set-cookie',
-          `session-token=${sessionToken}; Expires=${expiresAt.toUTCString()}; Path=/; HttpOnly; SameSite=Strict`
-        );
+      res.setHeader(
+        'set-cookie',
+        `session-token=${sessionToken}; Expires=${expiresAt.toUTCString()}; Path=/; HttpOnly; SameSite=Strict`
+      );
 
-        return res.status(200).send(messages.REGISTRATION_SUCCESSFUL);
-      } else return res.status(500).send(messages.INTERNAL_SERVER_ERROR);
+      return res.status(200).send(messages.REGISTRATION_SUCCESSFUL);
     } catch (err: any) {
       if ((err.message = messages.USERNAME_ALREADY_TAKEN)) {
         return res.status(409).send(messages.USERNAME_ALREADY_TAKEN);
