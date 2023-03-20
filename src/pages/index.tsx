@@ -1,8 +1,16 @@
+import { GetServerSideProps } from 'next';
 import Head from 'next/head';
 import styles from '@/styles/Home.module.css';
 import { useState } from 'react';
 
 import LinkAccounts from '../components/LinkAccounts';
+
+import * as db from '../lib/database/Adapter';
+
+interface AppProps {
+  loggedIn: boolean;
+  username?: string;
+}
 
 interface FormProps {
   setLoggedIn: (arg: boolean) => void;
@@ -107,13 +115,19 @@ const RegistrationForm = (props: FormProps) => {
   );
 };
 
-const App = () => {
-  const [loggedIn, setLoggedIn] = useState(false);
+const App = (props: AppProps) => {
+  const [loggedIn, setLoggedIn] = useState(props.loggedIn);
   const [showLoginForm, setShowLoginForm] = useState(false);
   const [showRegistrationForm, setShowRegistrationForm] = useState(false);
 
   if (loggedIn) {
-    return <LinkAccounts />;
+    return (
+      <>
+        <div>Welcome {props.username}!</div>
+        <br />
+        <LinkAccounts />
+      </>
+    );
   } else {
     return (
       <div>
@@ -144,7 +158,25 @@ const App = () => {
   }
 };
 
-export default function Home() {
+export const getServerSideProps: GetServerSideProps<AppProps> = async (context) => {
+  const { req } = context;
+  const props: AppProps = { loggedIn: false };
+
+  const sessionToken = req.cookies['session-token'];
+  // console.log('sessionToken:', sessionToken);
+
+  let username;
+  if (sessionToken) username = (await db.getSessionAndUser(sessionToken)).username;
+
+  if (username) {
+    props.loggedIn = true;
+    props.username = username;
+  }
+
+  return { props };
+};
+
+export default function Home(props: AppProps) {
   return (
     <>
       <Head>
@@ -154,7 +186,7 @@ export default function Home() {
         <link rel="icon" href="/favicon.ico" />
       </Head>
       <main className={styles.main}>
-        <App />
+        <App {...props} />
       </main>
     </>
   );

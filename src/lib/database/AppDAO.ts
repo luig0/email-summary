@@ -2,10 +2,13 @@ import path from 'path';
 import sqlite3 from 'sqlite3';
 
 const DB_NAME = process.env.DB_NAME || 'jointsummary.db';
+const DB_PATH = path.resolve(process.cwd(), 'assets', DB_NAME);
 
-const db = new sqlite3.Database(path.resolve(__dirname, '..', '..', '..', '..', 'assets', DB_NAME), async (err) => {
-  if (err) console.log('error connecting to db:', err);
-  else {
+const db = new sqlite3.Database(DB_PATH, async (err) => {
+  if (err) {
+    console.log('error connecting to db:', err);
+    console.log('err DB_PATH:', DB_PATH);
+  } else {
     console.log('successfully connected to db');
 
     const createUsersTable = `

@@ -23,8 +23,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
       if (!result) return res.status(401).send(messages.ACCESS_DENIED);
 
-      const sessionToken = await db.createSession(username, new Date(new Date().getTime() + SESSION_EXPIRY_PERIOD));
-      res.setHeader('Authorization', `Bearer ${sessionToken}`);
+      const expiresAt = new Date(new Date().getTime() + SESSION_EXPIRY_PERIOD);
+      const sessionToken = await db.createSession(username, expiresAt);
+      res.setHeader(
+        'set-cookie',
+        `session-token=${sessionToken}; Expires=${expiresAt.toUTCString()}; Path=/; HttpOnly; SameSite=Strict`
+      );
 
       return res.status(200).send('OK');
     } catch (err) {

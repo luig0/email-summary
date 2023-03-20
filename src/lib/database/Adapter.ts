@@ -88,6 +88,7 @@ async function hasSessionToken(token: string): Promise<boolean> {
 }
 
 export async function createSession(username: string, expiresAt: Date): Promise<string> {
+  const expiresAtString = expiresAt.toISOString();
   let sessionToken = crypto.randomBytes(16).toString('base64');
 
   while (await hasSessionToken(sessionToken)) sessionToken = crypto.randomBytes(16).toString('base64');
@@ -102,7 +103,7 @@ export async function createSession(username: string, expiresAt: Date): Promise<
         ?,
         ?);
     `,
-      [sessionToken, username, new Date().toISOString(), expiresAt.toISOString()]
+      [sessionToken, username, new Date().toISOString(), expiresAtString]
     );
 
     return sessionToken;
@@ -112,6 +113,19 @@ export async function createSession(username: string, expiresAt: Date): Promise<
   }
 }
 
-export async function getSessionAndUser(sessionToken: string) {
-  return await dao.get(`SELECT session_token, username FROM sessions, users WHERE sessionToken=?`, [sessionToken]);
+export async function getSessionAndUser(sessionToken: string): Promise<{ [key: string]: string }> {
+  try {
+    const result = await dao.get(
+      `
+        SELECT session_token, username 
+        FROM sessions, users 
+        WHERE sessions.user_id = users.id AND session_token=?
+      `,
+      [sessionToken]
+    );
+
+    return result;
+  } catch (error) {
+    return { sessionToken };
+  }
 }

@@ -20,16 +20,22 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       const result = await db.createUser(username, passwordHash);
 
       if (result) {
-        const sessionToken = await db.createSession(username, new Date(new Date().getTime() + SESSION_EXPIRY_PERIOD));
-        res.setHeader('Authorization', `Bearer ${sessionToken}`);
+        const expiresAt = new Date(new Date().getTime() + SESSION_EXPIRY_PERIOD);
+        const sessionToken = await db.createSession(username, expiresAt);
+
+        res.setHeader(
+          'set-cookie',
+          `session-token=${sessionToken}; Expires=${expiresAt.toUTCString()}; Path=/; HttpOnly; SameSite=Strict`
+        );
+
         return res.status(200).send(messages.REGISTRATION_SUCCESSFUL);
-      } else return res.status(500).send('');
+      } else return res.status(500).send(messages.INTERNAL_SERVER_ERROR);
     } catch (err: any) {
       if ((err.message = messages.USERNAME_ALREADY_TAKEN)) {
         return res.status(409).send(messages.USERNAME_ALREADY_TAKEN);
       } else {
         console.log('[register.ts] error:', err.message);
-        return res.status(500).send(err.message);
+        return res.status(500).send(messages.INTERNAL_SERVER_ERROR);
       }
     }
   } else {
