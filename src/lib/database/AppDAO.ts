@@ -2,16 +2,19 @@ import path from 'path';
 import sqlite3 from 'sqlite3';
 
 const DB_NAME = process.env.DB_NAME || 'jointsummary.db';
+const DB_PATH = path.resolve(process.cwd(), 'assets', DB_NAME);
 
-const db = new sqlite3.Database(path.resolve(__dirname, '..', '..', '..', '..', 'assets', DB_NAME), async (err) => {
-  if (err) console.log('error connecting to db:', err);
-  else {
+const db = new sqlite3.Database(DB_PATH, async (err) => {
+  if (err) {
+    console.log('error connecting to db:', err);
+    console.log('err DB_PATH:', DB_PATH);
+  } else {
     console.log('successfully connected to db');
 
     const createUsersTable = `
       CREATE TABLE IF NOT EXISTS users (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
-        username TEXT NOT NULL,
+        username TEXT NOT NULL UNIQUE,
         password_hash TEXT NOT NULL,
         date_created TEXT NOT NULL,
         date_modified TEXT
@@ -20,10 +23,23 @@ const db = new sqlite3.Database(path.resolve(__dirname, '..', '..', '..', '..', 
 
     await db.run(createUsersTable);
 
+    const createSessionsTable = `
+      CREATE TABLE IF NOT EXISTS sessions (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        session_token TEXT NOT NULL UNIQUE,
+        user_id INTEGER NOT NULL,
+        date_created TEXT NOT NULL,
+        expires_at TEXT NOT NULL,
+        FOREIGN KEY (user_id) REFERENCES users(id)
+      );
+    `;
+
+    await db.run(createSessionsTable);
+
     const createAccessTokensTable = `
       CREATE TABLE IF NOT EXISTS access_tokens (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
-        user_id INTEGER,
+        user_id INTEGER NOT NULL,
         access_token TEXT NOT NULL,
         date_created TEXT NOT NULL,
         date_modified TEXT,

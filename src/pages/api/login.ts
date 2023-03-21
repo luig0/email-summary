@@ -1,7 +1,10 @@
 import bcrypt from 'bcrypt';
 import type { NextApiRequest, NextApiResponse } from 'next';
 
-import * as db from '../../lib/AppDAO';
+import * as db from '../../lib/database/Adapter';
+import * as messages from '../../lib/Messages';
+
+const SESSION_EXPIRY_PERIOD = 60 * 60 * 24 * 1000;
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method === 'POST') {
@@ -9,23 +12,28 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     if (!username || !password) res.status(400);
 
-    console.log('username:', username);
-
     try {
-      const dbUser = await db.get('SELECT * FROM users WHERE username=?;', [username]);
+      const dbUser = await db.getDbUser(username);
 
-      if (!dbUser) return res.status(401).send('Access Denied');
+      if (!dbUser) return res.status(401).send(messages.ACCESS_DENIED);
 
       const result = await bcrypt.compare(password, dbUser.password_hash);
 
-      if (!result) return res.status(401).send('Access Denied');
+      if (!result) return res.status(401).send(messages.ACCESS_DENIED);
+
+      const expiresAt = new Date(new Date().getTime() + SESSION_EXPIRY_PERIOD);
+      const sessionToken = await db.createSession(username, expiresAt);
+      res.setHeader(
+        'set-cookie',
+        `session-token=${sessionToken}; Expires=${expiresAt.toUTCString()}; Path=/; HttpOnly; SameSite=Strict`
+      );
 
       return res.status(200).send('OK');
     } catch (err) {
       console.log('login.ts error:', err);
-      return res.status(500).send('Server error');
+      return res.status(500).send(messages.INTERNAL_SERVER_ERROR);
     }
   } else {
-    return res.status(405).send('Method Not Allowed');
+    return res.status(405).send(messages.METHOD_NOT_ALLOWED);
   }
 }
