@@ -51,7 +51,7 @@ const db = new sqlite3.Database(DB_PATH, async (err) => {
   }
 });
 
-export const run = (sql: string, params: (string | null)[] = []) => {
+export const run = (sql: string, params: (string | null)[] = []): Promise<void> => {
   return new Promise((resolve, reject) => {
     db.run(sql, params, function (err) {
       if (err) {
@@ -59,7 +59,7 @@ export const run = (sql: string, params: (string | null)[] = []) => {
         console.log(err);
         reject(err);
       } else {
-        resolve({ id: this.lastID });
+        resolve();
       }
     });
   });

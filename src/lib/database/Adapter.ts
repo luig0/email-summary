@@ -61,15 +61,13 @@ async function hasUser(username: string): Promise<boolean> {
 export async function createUser(username: string, passwordHash: string): Promise<void> {
   if (!(await hasUser(username))) {
     try {
-      const result = await dao.run(
+      await dao.run(
         `
           INSERT INTO users (username, password_hash, date_created, date_modified)
           VALUES (?, ?, ?, ?);
         `,
         [username, passwordHash, new Date().toISOString(), null]
       );
-
-      if (!result) throw new Error('Failed to create user');
     } catch (error) {
       console.log('Adapter.ts error:', error);
       throw new Error(messages.INTERNAL_SERVER_ERROR);
