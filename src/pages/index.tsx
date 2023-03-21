@@ -6,6 +6,7 @@ import { useState } from 'react';
 import LinkAccounts from '../components/LinkAccounts';
 
 import * as db from '../lib/database/Adapter';
+import * as messages from '../lib/Messages';
 
 interface AppProps {
   loggedIn: boolean;
@@ -26,15 +27,16 @@ export const getServerSideProps: GetServerSideProps<AppProps> = async (context) 
 
   const sessionToken = req.cookies['session-token'];
 
-  let username;
   if (sessionToken) {
-    const result = await db.getSessionAndUser(sessionToken);
-    username = result.username;
-  }
+    try {
+      const { username } = await db.getSessionAndUser(sessionToken);
+      props.loggedIn = true;
+      props.username = username;
+    } catch (error: any) {
+      if (error.message !== messages.SESSION_HAS_EXPIRED) console.log('index.tsx error:', error.message);
 
-  if (username) {
-    props.loggedIn = true;
-    props.username = username;
+      // else session is invalid; no-op
+    }
   }
 
   return { props };

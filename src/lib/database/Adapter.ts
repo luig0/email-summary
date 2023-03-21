@@ -94,10 +94,10 @@ export async function createSession(username: string, expiresAt: Date): Promise<
   try {
     await dao.run(
       `
-      INSERT INTO sessions (session_token, user_id, date_created, expires_at)
+      INSERT INTO sessions (user_id, session_token, date_created, expires_at)
       VALUES (
-        ?,
         (SELECT id FROM users WHERE username=?),
+        ?,
         ?,
         ?);
     `,
@@ -115,15 +115,19 @@ export async function getSessionAndUser(sessionToken: string): Promise<{ [key: s
   try {
     const result = await dao.get(
       `
-        SELECT session_token, username 
+        SELECT username, session_token, expires_at 
         FROM sessions, users 
         WHERE sessions.user_id = users.id AND session_token=?
       `,
       [sessionToken]
     );
 
+    if (!result || isSessionExpired(result.expires_at)) throw new Error(messages.SESSION_HAS_EXPIRED);
+
     return result;
   } catch (error: any) {
+    if (error.message === messages.SESSION_HAS_EXPIRED) throw new Error(messages.SESSION_HAS_EXPIRED);
+
     console.log('Adapter.ts error:', error.message);
     throw new Error(messages.INTERNAL_SERVER_ERROR);
   }
