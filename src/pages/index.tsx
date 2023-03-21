@@ -16,6 +16,30 @@ interface LoginFormProps {
   setShowLoginForm: (arg: boolean) => void;
 }
 
+interface RegistrationFormProps {
+  setShowRegistrationForm: (arg: boolean) => void;
+}
+
+export const getServerSideProps: GetServerSideProps<AppProps> = async (context) => {
+  const { req } = context;
+  const props: AppProps = { loggedIn: false };
+
+  const sessionToken = req.cookies['session-token'];
+
+  let username;
+  if (sessionToken) {
+    const result = await db.getSessionAndUser(sessionToken);
+    username = result.username;
+  }
+
+  if (username) {
+    props.loggedIn = true;
+    props.username = username;
+  }
+
+  return { props };
+};
+
 const LoginForm = (props: LoginFormProps) => {
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -57,10 +81,6 @@ const LoginForm = (props: LoginFormProps) => {
     </div>
   );
 };
-
-interface RegistrationFormProps {
-  setShowRegistrationForm: (arg: boolean) => void;
-}
 
 const RegistrationForm = (props: RegistrationFormProps) => {
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
@@ -114,11 +134,10 @@ const RegistrationForm = (props: RegistrationFormProps) => {
 };
 
 const App = (props: AppProps) => {
-  const [loggedIn, setLoggedIn] = useState(props.loggedIn);
   const [showLoginForm, setShowLoginForm] = useState(false);
   const [showRegistrationForm, setShowRegistrationForm] = useState(false);
 
-  if (loggedIn) {
+  if (props.loggedIn) {
     return (
       <>
         <div>Welcome {props.username}!</div>
@@ -148,32 +167,12 @@ const App = (props: AppProps) => {
           </button>
         </div>
         <div>
-          {showLoginForm && <LoginForm setLoggedIn={setLoggedIn} setShowLoginForm={setShowLoginForm} />}
+          {showLoginForm && <LoginForm setShowLoginForm={setShowLoginForm} />}
           {showRegistrationForm && <RegistrationForm setShowRegistrationForm={setShowRegistrationForm} />}
         </div>
       </div>
     );
   }
-};
-
-export const getServerSideProps: GetServerSideProps<AppProps> = async (context) => {
-  const { req } = context;
-  const props: AppProps = { loggedIn: false };
-
-  const sessionToken = req.cookies['session-token'];
-
-  let username;
-  if (sessionToken) {
-    const result = await db.getSessionAndUser(sessionToken);
-    username = result.username;
-  }
-
-  if (username) {
-    props.loggedIn = true;
-    props.username = username;
-  }
-
-  return { props };
 };
 
 export default function Home(props: AppProps) {
