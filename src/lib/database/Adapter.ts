@@ -61,15 +61,13 @@ async function hasUser(username: string): Promise<boolean> {
 export async function createUser(username: string, passwordHash: string): Promise<void> {
   if (!(await hasUser(username))) {
     try {
-      const result = await dao.run(
+      await dao.run(
         `
           INSERT INTO users (username, password_hash, date_created, date_modified)
           VALUES (?, ?, ?, ?);
         `,
         [username, passwordHash, new Date().toISOString(), null]
       );
-
-      if (!result) throw new Error('Failed to create user');
     } catch (error) {
       console.log('Adapter.ts error:', error);
       throw new Error(messages.INTERNAL_SERVER_ERROR);
@@ -125,7 +123,17 @@ export async function getSessionAndUser(sessionToken: string): Promise<{ [key: s
     );
 
     return result;
-  } catch (error) {
-    return { sessionToken };
+  } catch (error: any) {
+    console.log('Adapter.ts error:', error.message);
+    throw new Error(messages.INTERNAL_SERVER_ERROR);
+  }
+}
+
+export async function deleteSession(sessionToken: string) {
+  try {
+    await dao.run(`DELETE FROM sessions WHERE session_token=?`, [sessionToken]);
+  } catch (error: any) {
+    console.log('Adapter.ts error:', error.message);
+    throw new Error(messages.INTERNAL_SERVER_ERROR);
   }
 }
