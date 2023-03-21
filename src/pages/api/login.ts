@@ -2,9 +2,8 @@ import bcrypt from 'bcrypt';
 import type { NextApiRequest, NextApiResponse } from 'next';
 
 import * as db from '../../lib/database/Adapter';
+import { SESSION_EXPIRY_PERIOD } from '../../Constants';
 import * as messages from '../../lib/Messages';
-
-const SESSION_EXPIRY_PERIOD = 60 * 60 * 24 * 1000;
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method === 'POST') {
