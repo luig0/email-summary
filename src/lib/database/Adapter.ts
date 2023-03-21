@@ -128,3 +128,12 @@ export async function getSessionAndUser(sessionToken: string): Promise<{ [key: s
     throw new Error(messages.INTERNAL_SERVER_ERROR);
   }
 }
+
+export async function deleteSession(sessionToken: string) {
+  try {
+    await dao.run(`DELETE FROM sessions WHERE session_token=?`, [sessionToken]);
+  } catch (error: any) {
+    console.log('Adapter.ts error:', error.message);
+    throw new Error(messages.INTERNAL_SERVER_ERROR);
+  }
+}
