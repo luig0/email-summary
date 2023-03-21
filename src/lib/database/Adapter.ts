@@ -123,7 +123,8 @@ export async function getSessionAndUser(sessionToken: string): Promise<{ [key: s
     );
 
     return result;
-  } catch (error) {
-    return { sessionToken };
+  } catch (error: any) {
+    console.log('Adapter.ts error:', error.message);
+    throw new Error(messages.INTERNAL_SERVER_ERROR);
   }
 }
