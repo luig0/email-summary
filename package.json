@@ -25,6 +25,7 @@
   },
   "devDependencies": {
     "@types/bcrypt": "^5.0.0",
-    "@types/plaid-link": "^2.0.11"
+    "@types/plaid-link": "^2.0.11",
+    "ts-node": "^10.9.1"
   }
 }
