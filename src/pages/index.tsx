@@ -22,7 +22,7 @@ interface RegistrationFormProps {
 }
 
 export const getServerSideProps: GetServerSideProps<AppProps> = async (context) => {
-  const { req } = context;
+  const { req, res } = context;
   const props: AppProps = { loggedIn: false };
 
   const sessionToken = req.cookies['session-token'];
@@ -34,8 +34,11 @@ export const getServerSideProps: GetServerSideProps<AppProps> = async (context) 
       props.username = username;
     } catch (error: any) {
       if (error.message !== messages.SESSION_HAS_EXPIRED) console.log('index.tsx error:', error.message);
-
-      // else session is invalid; no-op
+      else // session token is invalid; clear it
+        res.setHeader(
+          'set-cookie',
+          `session-token=deleted; Expires=Thu, 01 Jan 1970 00:00:00 GMT; Path=/; HttpOnly; SameSite=Strict`
+        );
     }
   }
 
