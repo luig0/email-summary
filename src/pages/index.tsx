@@ -180,7 +180,7 @@ const App = (props: AppProps) => {
   }
 };
 
-export default function Home(props: AppProps) {
+export default (props: AppProps) => {
   return (
     <>
       <Head>
@@ -194,4 +194,4 @@ export default function Home(props: AppProps) {
       </main>
     </>
   );
-}
+};
