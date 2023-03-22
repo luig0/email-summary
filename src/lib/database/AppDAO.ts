@@ -26,8 +26,8 @@ const db = new sqlite3.Database(DB_PATH, async (err) => {
     const createSessionsTable = `
       CREATE TABLE IF NOT EXISTS sessions (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
-        session_token TEXT NOT NULL UNIQUE,
         user_id INTEGER NOT NULL,
+        session_token TEXT NOT NULL UNIQUE,
         date_created TEXT NOT NULL,
         expires_at TEXT NOT NULL,
         FOREIGN KEY (user_id) REFERENCES users(id)
@@ -41,6 +41,7 @@ const db = new sqlite3.Database(DB_PATH, async (err) => {
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         user_id INTEGER NOT NULL,
         access_token TEXT NOT NULL,
+        item_id TEXT NOT NULL,
         date_created TEXT NOT NULL,
         date_modified TEXT,
         FOREIGN KEY (user_id) REFERENCES users(id)

@@ -27,9 +27,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         `session-token=${sessionToken}; Expires=${expiresAt.toUTCString()}; Path=/; HttpOnly; SameSite=Strict`
       );
 
-      return res.status(200).send(messages.REGISTRATION_SUCCESSFUL);
+      return res.status(201).send(messages.CREATED);
     } catch (err: any) {
-      if ((err.message = messages.USERNAME_ALREADY_TAKEN)) {
+      if (err.message === messages.USERNAME_ALREADY_TAKEN) {
         return res.status(409).send(messages.USERNAME_ALREADY_TAKEN);
       } else {
         console.log('[register.ts] error:', err.message);

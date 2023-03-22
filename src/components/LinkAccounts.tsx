@@ -36,7 +36,7 @@ const Link: React.FC<LinkProps> = (props: LinkProps) => {
   );
 };
 
-export default function LinkAccounts() {
+export default () => {
   const generateToken = async () => {
     const response = await fetch('/api/create_link_token', {
       method: 'POST',
@@ -56,4 +56,4 @@ export default function LinkAccounts() {
   }, []);
 
   return linkToken !== null ? <Link linkToken={linkToken} /> : <>Fetching link token. Please wait.</>;
-}
+};

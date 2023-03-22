@@ -1,11 +1,11 @@
 import { GetServerSideProps } from 'next';
 import Head from 'next/head';
+import { useRouter } from 'next/router';
 import styles from '@/styles/Home.module.css';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 
-import LinkAccounts from '../components/LinkAccounts';
-
-import * as db from '../lib/database/Adapter';
+import * as db from '@/lib/database/Adapter';
+import * as messages from '@/lib/Messages';
 
 interface AppProps {
   loggedIn: boolean;
@@ -21,20 +21,24 @@ interface RegistrationFormProps {
 }
 
 export const getServerSideProps: GetServerSideProps<AppProps> = async (context) => {
-  const { req } = context;
+  const { req, res } = context;
   const props: AppProps = { loggedIn: false };
 
   const sessionToken = req.cookies['session-token'];
 
-  let username;
   if (sessionToken) {
-    const result = await db.getSessionAndUser(sessionToken);
-    username = result.username;
-  }
-
-  if (username) {
-    props.loggedIn = true;
-    props.username = username;
+    try {
+      const { username } = await db.getSessionAndUser(sessionToken);
+      props.loggedIn = true;
+      props.username = username;
+    } catch (error: any) {
+      if (error.message !== messages.SESSION_HAS_EXPIRED) console.log('index.tsx error:', error.message);
+      else
+        res.setHeader(
+          'set-cookie',
+          `session-token=deleted; Expires=Thu, 01 Jan 1970 00:00:00 GMT; Path=/; HttpOnly; SameSite=Strict`
+        ); // session token is invalid; clear it
+    }
   }
 
   return { props };
@@ -54,7 +58,7 @@ const LoginForm = (props: LoginFormProps) => {
 
     setLoginStatus(`${res.status} ${res.statusText}`);
 
-    if (res.status === 200 && res.statusText === 'OK') location.reload();
+    if (res.status === 200 && res.statusText === messages.OK) location.reload();
   };
 
   const { setShowLoginForm } = props;
@@ -101,7 +105,7 @@ const RegistrationForm = (props: RegistrationFormProps) => {
       setLoginStatus(`${res.status} ${res.statusText}`);
     }
 
-    if (res.status === 200 && res.statusText === 'OK') location.reload();
+    if (res.status === 201 && res.statusText === messages.CREATED) location.reload();
   };
 
   const { setShowRegistrationForm } = props;
@@ -134,48 +138,43 @@ const RegistrationForm = (props: RegistrationFormProps) => {
 };
 
 const App = (props: AppProps) => {
+  const router = useRouter();
   const [showLoginForm, setShowLoginForm] = useState(false);
   const [showRegistrationForm, setShowRegistrationForm] = useState(false);
 
-  if (props.loggedIn) {
-    return (
-      <>
-        <div>Welcome {props.username}!</div>
-        <br />
-        <LinkAccounts />
-      </>
-    );
-  } else {
-    return (
-      <div>
-        <div style={{ margin: '20px', textAlign: 'center' }}>
-          <button
-            onClick={() => {
-              setShowRegistrationForm(false);
-              setShowLoginForm(true);
-            }}
-          >
-            Login
-          </button>
-          <button
-            onClick={() => {
-              setShowLoginForm(false);
-              setShowRegistrationForm(true);
-            }}
-          >
-            Register
-          </button>
-        </div>
-        <div>
-          {showLoginForm && <LoginForm setShowLoginForm={setShowLoginForm} />}
-          {showRegistrationForm && <RegistrationForm setShowRegistrationForm={setShowRegistrationForm} />}
-        </div>
+  useEffect(() => {
+    if (props.loggedIn) router.push('/home');
+  }, []);
+
+  return (
+    <div>
+      <div style={{ margin: '20px', textAlign: 'center' }}>
+        <button
+          onClick={() => {
+            setShowRegistrationForm(false);
+            setShowLoginForm(true);
+          }}
+        >
+          Login
+        </button>
+        <button
+          onClick={() => {
+            setShowLoginForm(false);
+            setShowRegistrationForm(true);
+          }}
+        >
+          Register
+        </button>
       </div>
-    );
-  }
+      <div>
+        {showLoginForm && <LoginForm setShowLoginForm={setShowLoginForm} />}
+        {showRegistrationForm && <RegistrationForm setShowRegistrationForm={setShowRegistrationForm} />}
+      </div>
+    </div>
+  );
 };
 
-export default function Home(props: AppProps) {
+export default (props: AppProps) => {
   return (
     <>
       <Head>
@@ -189,4 +188,4 @@ export default function Home(props: AppProps) {
       </main>
     </>
   );
-}
+};

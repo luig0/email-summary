@@ -27,7 +27,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         `session-token=${sessionToken}; Expires=${expiresAt.toUTCString()}; Path=/; HttpOnly; SameSite=Strict`
       );
 
-      return res.status(200).send('OK');
+      return res.status(200).send(messages.OK);
     } catch (err) {
       console.log('login.ts error:', err);
       return res.status(500).send(messages.INTERNAL_SERVER_ERROR);
