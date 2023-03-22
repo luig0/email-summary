@@ -1,4 +1,5 @@
 import { GetServerSideProps } from 'next';
+import Link from 'next/link';
 
 import * as db from '@/lib/database/Adapter';
 import LinkAccounts from '@/components/LinkAccounts';
@@ -49,7 +50,9 @@ const getTransactions = async (accessToken: string) => {
 export default (props: HomeProps) => {
   return (
     <>
-      <div>Hello from home.tsx! Logged in as {props.username}</div>
+      <div>
+        Hello from home.tsx! Logged in as {props.username} (<Link href="/logout">logout</Link>)
+      </div>
       <br />
       <LinkAccounts />
       <br />
