@@ -1,7 +1,8 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { CountryCode, LinkTokenCreateRequest, LinkTokenCreateResponse, Products } from 'plaid';
 
-import client from '../../lib/PlaidApiClient';
+import * as db from '@/lib/database/Adapter';
+import client from '@/lib/PlaidApiClient';
 
 // PLAID_PRODUCTS is a comma-separated list of products to use when initializing
 // Link. Note that this list must contain 'assets' in order for the app to be
@@ -23,23 +24,28 @@ const PLAID_REDIRECT_URI = process.env.PLAID_REDIRECT_URI || '';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse<LinkTokenCreateResponse | string>) {
   if (req.method === 'POST') {
-    const configs: LinkTokenCreateRequest = {
-      user: {
-        // This should correspond to a unique id for the current user.
-        client_user_id: 'user-id',
-      },
-      client_name: 'Plaid Quickstart',
-      products: PLAID_PRODUCTS,
-      country_codes: PLAID_COUNTRY_CODES,
-      language: 'en',
-    };
+    const sessionToken = req.cookies['session-token'];
 
-    if (PLAID_REDIRECT_URI !== '') {
-      configs.redirect_uri = PLAID_REDIRECT_URI;
+    if (sessionToken) {
+      const { username } = await db.getSessionAndUser(sessionToken);
+      const configs: LinkTokenCreateRequest = {
+        user: {
+          // This should correspond to a unique id for the current user.
+          client_user_id: username,
+        },
+        client_name: 'Plaid Quickstart',
+        products: PLAID_PRODUCTS,
+        country_codes: PLAID_COUNTRY_CODES,
+        language: 'en',
+      };
+
+      if (PLAID_REDIRECT_URI !== '') {
+        configs.redirect_uri = PLAID_REDIRECT_URI;
+      }
+
+      const createTokenResponse = await client.linkTokenCreate(configs);
+      res.json(createTokenResponse.data);
     }
-
-    const createTokenResponse = await client.linkTokenCreate(configs);
-    res.json(createTokenResponse.data);
   } else {
     res.status(405).send('Method Not Allowed');
   }
