@@ -59,7 +59,7 @@ const LoginForm = (props: LoginFormProps) => {
 
     setLoginStatus(`${res.status} ${res.statusText}`);
 
-    if (res.status === 200 && res.statusText === 'OK') location.reload();
+    if (res.status === 200 && res.statusText === messages.OK) location.reload();
   };
 
   const { setShowLoginForm } = props;
@@ -106,7 +106,7 @@ const RegistrationForm = (props: RegistrationFormProps) => {
       setLoginStatus(`${res.status} ${res.statusText}`);
     }
 
-    if (res.status === 200 && res.statusText === 'OK') location.reload();
+    if (res.status === 201 && res.statusText === messages.CREATED) location.reload();
   };
 
   const { setShowRegistrationForm } = props;
