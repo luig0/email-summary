@@ -1,12 +1,11 @@
 import { GetServerSideProps } from 'next';
 import Head from 'next/head';
+import { useRouter } from 'next/router';
 import styles from '@/styles/Home.module.css';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 
-import LinkAccounts from '../components/LinkAccounts';
-
-import * as db from '../lib/database/Adapter';
-import * as messages from '../lib/Messages';
+import * as db from '@/lib/database/Adapter';
+import * as messages from '@/lib/Messages';
 
 interface AppProps {
   loggedIn: boolean;
@@ -139,45 +138,40 @@ const RegistrationForm = (props: RegistrationFormProps) => {
 };
 
 const App = (props: AppProps) => {
+  const router = useRouter();
   const [showLoginForm, setShowLoginForm] = useState(false);
   const [showRegistrationForm, setShowRegistrationForm] = useState(false);
 
-  if (props.loggedIn) {
-    return (
-      <>
-        <div>Welcome {props.username}!</div>
-        <br />
-        <LinkAccounts />
-      </>
-    );
-  } else {
-    return (
-      <div>
-        <div style={{ margin: '20px', textAlign: 'center' }}>
-          <button
-            onClick={() => {
-              setShowRegistrationForm(false);
-              setShowLoginForm(true);
-            }}
-          >
-            Login
-          </button>
-          <button
-            onClick={() => {
-              setShowLoginForm(false);
-              setShowRegistrationForm(true);
-            }}
-          >
-            Register
-          </button>
-        </div>
-        <div>
-          {showLoginForm && <LoginForm setShowLoginForm={setShowLoginForm} />}
-          {showRegistrationForm && <RegistrationForm setShowRegistrationForm={setShowRegistrationForm} />}
-        </div>
+  useEffect(() => {
+    if (props.loggedIn) router.push('/home');
+  }, []);
+
+  return (
+    <div>
+      <div style={{ margin: '20px', textAlign: 'center' }}>
+        <button
+          onClick={() => {
+            setShowRegistrationForm(false);
+            setShowLoginForm(true);
+          }}
+        >
+          Login
+        </button>
+        <button
+          onClick={() => {
+            setShowLoginForm(false);
+            setShowRegistrationForm(true);
+          }}
+        >
+          Register
+        </button>
       </div>
-    );
-  }
+      <div>
+        {showLoginForm && <LoginForm setShowLoginForm={setShowLoginForm} />}
+        {showRegistrationForm && <RegistrationForm setShowRegistrationForm={setShowRegistrationForm} />}
+      </div>
+    </div>
+  );
 };
 
 export default (props: AppProps) => {
