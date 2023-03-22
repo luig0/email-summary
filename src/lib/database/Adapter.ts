@@ -70,7 +70,7 @@ interface GetSessionAndUserResponse {
   expires_at: string;
 }
 
-function isSessionExpired(expiresAt: string) {
+function isSessionExpired(expiresAt: string): boolean {
   return Date.now() - new Date(expiresAt).getTime() > 0;
 }
 
@@ -98,8 +98,8 @@ export async function createUser(username: string, passwordHash: string): Promis
   }
 }
 
-export async function getDbUser(username: string) {
-  return await dao.get('SELECT * FROM users WHERE username=?;', [username]);
+export async function getDbUser(username: string): Promise<DbUser> {
+  return await dao.get('SELECT username, password_hash FROM users WHERE username=?;', [username]);
 }
 
 async function hasSessionToken(token: string): Promise<boolean> {
