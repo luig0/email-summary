@@ -53,6 +53,16 @@ import crypto from 'crypto';
 import * as dao from './AppDAO';
 import * as messages from '../Messages';
 
+interface GetSessionAndUserResponse {
+  username: string;
+  session_token: string;
+  expires_at: string;
+}
+
+function isSessionExpired(expiresAt: string) {
+  return Date.now() - new Date(expiresAt).getTime() > 0;
+}
+
 async function hasUser(username: string): Promise<boolean> {
   const result = await dao.get(`SELECT username FROM users WHERE username=?`, [username]);
   return !!result;
@@ -111,7 +121,7 @@ export async function createSession(username: string, expiresAt: Date): Promise<
   }
 }
 
-export async function getSessionAndUser(sessionToken: string): Promise<{ [key: string]: string }> {
+export async function getSessionAndUser(sessionToken: string): Promise<GetSessionAndUserResponse> {
   try {
     const result = await dao.get(
       `
@@ -122,7 +132,7 @@ export async function getSessionAndUser(sessionToken: string): Promise<{ [key: s
       [sessionToken]
     );
 
-    if (!result || isSessionExpired(result.expires_at)) throw new Error(messages.SESSION_HAS_EXPIRED);
+    if (isSessionExpired(result.expires_at)) throw new Error(messages.SESSION_HAS_EXPIRED);
 
     return result;
   } catch (error: any) {
@@ -136,6 +146,27 @@ export async function getSessionAndUser(sessionToken: string): Promise<{ [key: s
 export async function deleteSession(sessionToken: string) {
   try {
     await dao.run(`DELETE FROM sessions WHERE session_token=?`, [sessionToken]);
+  } catch (error: any) {
+    console.log('Adapter.ts error:', error.message);
+    throw new Error(messages.INTERNAL_SERVER_ERROR);
+  }
+}
+
+export async function createAccessToken(username: string, accessToken: string, itemId: string) {
+  try {
+    await dao.run(
+      `
+        INSERT INTO access_tokens (user_id, access_token, item_id, date_created, date_modified)
+        VALUES (
+          (SELECT id FROM users WHERE username=?),
+          ?,
+          ?,
+          ?,
+          ?
+        );
+    `,
+      [username, accessToken, itemId, new Date().toISOString(), null]
+    );
   } catch (error: any) {
     console.log('Adapter.ts error:', error.message);
     throw new Error(messages.INTERNAL_SERVER_ERROR);

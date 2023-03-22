@@ -41,6 +41,7 @@ const db = new sqlite3.Database(DB_PATH, async (err) => {
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         user_id INTEGER NOT NULL,
         access_token TEXT NOT NULL,
+        item_id TEXT NOT NULL,
         date_created TEXT NOT NULL,
         date_modified TEXT,
         FOREIGN KEY (user_id) REFERENCES users(id)
