@@ -52,7 +52,17 @@ import crypto from 'crypto';
 
 import * as dao from '@/lib/database/AppDAO';
 import * as messages from '@/lib/Messages';
-import { AccessTokenRecord } from '@/types';
+
+export interface AccessTokenRecord {
+  access_token: string;
+  item_id: string;
+  date_created: string;
+}
+
+interface DbUser {
+  username: string;
+  password_hash: string;
+}
 
 interface GetSessionAndUserResponse {
   username: string;
