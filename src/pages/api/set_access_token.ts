@@ -1,8 +1,8 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 
-import * as db from '../../lib/database/Adapter';
-import * as messages from '../../lib/Messages';
-import client from '../../lib/PlaidApiClient';
+import * as db from '@/lib/database/Adapter';
+import * as messages from '@/lib/Messages';
+import client from '@/lib/PlaidApiClient';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method === 'POST') {

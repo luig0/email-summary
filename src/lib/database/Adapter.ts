@@ -50,9 +50,9 @@
 
 import crypto from 'crypto';
 
-import * as dao from './AppDAO';
-import * as messages from '../Messages';
-import { AccessTokenRecord } from '../../types';
+import * as dao from '@/lib/database/AppDAO';
+import * as messages from '@/lib/Messages';
+import { AccessTokenRecord } from '@/types';
 
 interface GetSessionAndUserResponse {
   username: string;
