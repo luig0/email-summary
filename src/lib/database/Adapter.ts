@@ -101,7 +101,7 @@ export async function createSession(username: string, expiresAt: Date): Promise<
         ?,
         ?);
     `,
-      [sessionToken, username, new Date().toISOString(), expiresAtString]
+      [username, sessionToken, new Date().toISOString(), expiresAtString]
     );
 
     return sessionToken;

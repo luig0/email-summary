@@ -34,11 +34,11 @@ export const getServerSideProps: GetServerSideProps<AppProps> = async (context) 
       props.username = username;
     } catch (error: any) {
       if (error.message !== messages.SESSION_HAS_EXPIRED) console.log('index.tsx error:', error.message);
-      else // session token is invalid; clear it
+      else
         res.setHeader(
           'set-cookie',
           `session-token=deleted; Expires=Thu, 01 Jan 1970 00:00:00 GMT; Path=/; HttpOnly; SameSite=Strict`
-        );
+        ); // session token is invalid; clear it
     }
   }
 

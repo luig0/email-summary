@@ -29,7 +29,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
       return res.status(200).send(messages.REGISTRATION_SUCCESSFUL);
     } catch (err: any) {
-      if ((err.message = messages.USERNAME_ALREADY_TAKEN)) {
+      if (err.message === messages.USERNAME_ALREADY_TAKEN) {
         return res.status(409).send(messages.USERNAME_ALREADY_TAKEN);
       } else {
         console.log('[register.ts] error:', err.message);
