@@ -52,6 +52,7 @@ import crypto from 'crypto';
 
 import * as dao from './AppDAO';
 import * as messages from '../Messages';
+import { AccessTokenRecord } from '../../types';
 
 interface GetSessionAndUserResponse {
   username: string;
@@ -143,7 +144,7 @@ export async function getSessionAndUser(sessionToken: string): Promise<GetSessio
   }
 }
 
-export async function deleteSession(sessionToken: string) {
+export async function deleteSession(sessionToken: string): Promise<void> {
   try {
     await dao.run(`DELETE FROM sessions WHERE session_token=?`, [sessionToken]);
   } catch (error: any) {
@@ -152,7 +153,7 @@ export async function deleteSession(sessionToken: string) {
   }
 }
 
-export async function createAccessToken(username: string, accessToken: string, itemId: string) {
+export async function createAccessToken(username: string, accessToken: string, itemId: string): Promise<void> {
   try {
     await dao.run(
       `
@@ -166,6 +167,22 @@ export async function createAccessToken(username: string, accessToken: string, i
         );
     `,
       [username, accessToken, itemId, new Date().toISOString(), null]
+    );
+  } catch (error: any) {
+    console.log('Adapter.ts error:', error.message);
+    throw new Error(messages.INTERNAL_SERVER_ERROR);
+  }
+}
+
+export async function getAccessTokens(username: string): Promise<AccessTokenRecord[]> {
+  try {
+    return await dao.all(
+      `
+        SELECT access_token, item_id, date_created 
+        FROM access_tokens 
+        WHERE user_id=(SELECT id FROM users WHERE username=?)
+      `,
+      [username]
     );
   } catch (error: any) {
     console.log('Adapter.ts error:', error.message);
