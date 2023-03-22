@@ -1,9 +1,9 @@
 import bcrypt from 'bcrypt';
 import type { NextApiRequest, NextApiResponse } from 'next';
 
-import * as db from '../../lib/database/Adapter';
-import { SESSION_EXPIRY_PERIOD } from '../../Constants';
-import * as messages from '../../lib/Messages';
+import * as db from '@/lib/database/Adapter';
+import { SESSION_EXPIRY_PERIOD } from '@/Constants';
+import * as messages from '@/lib/Messages';
 
 const SALT_ROUNDS = 12;
 
@@ -19,7 +19,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       const passwordHash = await bcrypt.hash(password, SALT_ROUNDS);
       await db.createUser(username, passwordHash);
 
-      const expiresAt = new Date(new Date().getTime() + SESSION_EXPIRY_PERIOD);
+      const expiresAt = new Date(Date.now() + SESSION_EXPIRY_PERIOD);
       const sessionToken = await db.createSession(username, expiresAt);
 
       res.setHeader(
