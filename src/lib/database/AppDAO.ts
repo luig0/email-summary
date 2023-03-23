@@ -1,7 +1,7 @@
 import path from 'path';
 import sqlite3 from 'sqlite3';
 
-const DB_NAME = process.env.DB_NAME || 'jointsummary.db';
+const DB_NAME = process.env.DB_NAME || 'emailsummary.db';
 const DB_PATH = path.resolve(process.cwd(), 'database', DB_NAME);
 
 const db = new sqlite3.Database(DB_PATH, async (err) => {
