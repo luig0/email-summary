@@ -20,7 +20,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
       if (!result) return res.status(401).send(messages.ACCESS_DENIED);
 
-      const expiresAt = new Date(new Date().getTime() + SESSION_EXPIRY_PERIOD);
+      const expiresAt = new Date(Date.now() + SESSION_EXPIRY_PERIOD);
       const sessionToken = await db.createSession(username, expiresAt);
       res.setHeader(
         'set-cookie',

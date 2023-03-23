@@ -52,7 +52,17 @@ import crypto from 'crypto';
 
 import * as dao from '@/lib/database/AppDAO';
 import * as messages from '@/lib/Messages';
-import { AccessTokenRecord } from '@/types';
+
+export interface AccessTokenRecord {
+  access_token: string;
+  item_id: string;
+  date_created: string;
+}
+
+interface DbUser {
+  username: string;
+  password_hash: string;
+}
 
 interface GetSessionAndUserResponse {
   username: string;
@@ -60,7 +70,7 @@ interface GetSessionAndUserResponse {
   expires_at: string;
 }
 
-function isSessionExpired(expiresAt: string) {
+function isSessionExpired(expiresAt: string): boolean {
   return Date.now() - new Date(expiresAt).getTime() > 0;
 }
 
@@ -88,8 +98,8 @@ export async function createUser(username: string, passwordHash: string): Promis
   }
 }
 
-export async function getDbUser(username: string) {
-  return await dao.get('SELECT * FROM users WHERE username=?;', [username]);
+export async function getDbUser(username: string): Promise<DbUser> {
+  return await dao.get('SELECT username, password_hash FROM users WHERE username=?;', [username]);
 }
 
 async function hasSessionToken(token: string): Promise<boolean> {

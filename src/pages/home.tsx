@@ -3,7 +3,7 @@ import Link from 'next/link';
 
 import * as db from '@/lib/database/Adapter';
 import LinkAccounts from '@/components/LinkAccounts';
-import { AccessTokenRecord } from '@/types';
+import { AccessTokenRecord } from '@/lib/database/Adapter';
 
 interface HomeProps {
   username: string;
