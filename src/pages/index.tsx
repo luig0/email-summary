@@ -134,13 +134,11 @@ const RegistrationForm = (props: RegistrationFormProps) => {
               Cancel
             </Button>
           </Form>
+          <br />
+          <div>{loginStatus.length > 0 && <span>{loginStatus}</span>}</div>
         </Col>
         <Col></Col>
       </Row>
-      <Col></Col>
-      <Col>
-        <Row>{loginStatus.length > 0 && <span>{loginStatus}</span>}</Row>
-      </Col>
       <Col></Col>
     </div>
   );
