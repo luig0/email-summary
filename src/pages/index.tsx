@@ -4,16 +4,19 @@ import { useRouter } from 'next/router';
 import styles from '@/styles/Home.module.css';
 import { useEffect, useState } from 'react';
 
+import 'bootstrap/dist/css/bootstrap.min.css';
+import Container from 'react-bootstrap/Container';
+import Button from 'react-bootstrap/Button';
+import Form from 'react-bootstrap/Form';
+import Row from 'react-bootstrap/Row';
+import Col from 'react-bootstrap/Col';
+
 import * as db from '@/lib/database/Adapter';
 import * as messages from '@/lib/Messages';
 
 interface AppProps {
   loggedIn: boolean;
   username?: string;
-}
-
-interface LoginFormProps {
-  setShowLoginForm: (arg: boolean) => void;
 }
 
 interface RegistrationFormProps {
@@ -44,11 +47,11 @@ export const getServerSideProps: GetServerSideProps<AppProps> = async (context) 
   return { props };
 };
 
-const LoginForm = (props: LoginFormProps) => {
+const LoginForm = () => {
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    const username = (document.getElementById('username') as HTMLInputElement)?.value;
-    const password = (document.getElementById('password') as HTMLInputElement)?.value;
+    const username = (document.getElementById('formUsername') as HTMLInputElement)?.value;
+    const password = (document.getElementById('formBasicPassword') as HTMLInputElement)?.value;
 
     const res = await fetch('/api/login', {
       method: 'POST',
@@ -61,36 +64,32 @@ const LoginForm = (props: LoginFormProps) => {
     if (res.status === 200 && res.statusText === messages.OK) location.reload();
   };
 
-  const { setShowLoginForm } = props;
   const [loginStatus, setLoginStatus] = useState('');
 
   return (
-    <div style={{ textAlign: 'center', height: '400px' }}>
-      <form onSubmit={handleSubmit}>
-        <fieldset className={styles.fieldset}>
-          <label>
-            Username: <input type="text" name="username" id="username" />
-          </label>
-          <br />
-          <label>
-            Password: <input type="password" name="password" id="password" />
-          </label>
-          <br />
-        </fieldset>
-        <input type="submit" value="Submit" />
-        <input type="button" value="Cancel" onClick={() => setShowLoginForm(false)} />
-      </form>
+    <>
+      <Form onSubmit={handleSubmit}>
+        <Form.Group className="mb-3" controlId="formUsername">
+          <Form.Control type="text" placeholder="Username" />
+        </Form.Group>
+        <Form.Group className="mb-3" controlId="formBasicPassword">
+          <Form.Control type="password" placeholder="Password" />
+        </Form.Group>
+        <Button variant="primary" type="submit">
+          Submit
+        </Button>
+      </Form>
       <br />
       {loginStatus.length > 0 && <span>{loginStatus}</span>}
-    </div>
+    </>
   );
 };
 
 const RegistrationForm = (props: RegistrationFormProps) => {
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    const username = (document.getElementById('username') as HTMLInputElement)?.value;
-    const password = (document.getElementById('password') as HTMLInputElement)?.value;
+    const username = (document.getElementById('formUsername') as HTMLInputElement)?.value;
+    const password = (document.getElementById('formBasicPassword') as HTMLInputElement)?.value;
     const inviteCode = (document.getElementById('invite-code') as HTMLInputElement)?.value;
 
     const res = await fetch('/api/register', {
@@ -112,66 +111,80 @@ const RegistrationForm = (props: RegistrationFormProps) => {
   const [loginStatus, setLoginStatus] = useState('');
 
   return (
-    <div style={{ textAlign: 'center', height: '400px' }}>
-      <form onSubmit={handleSubmit}>
-        <fieldset className={styles.fieldset}>
-          <label>
-            Username: <input type="text" name="username" id="username" />
-          </label>
-          <br />
-          <label>
-            Password: <input type="password" name="password" id="password" />
-          </label>
-          <br />
-          <label>
-            Invitation Code: <input type="text" name="invite-code" id="invite-code" />
-          </label>
-          <br />
-        </fieldset>
-        <input type="submit" value="Submit" />
-        <input type="button" value="Cancel" onClick={() => setShowRegistrationForm(false)} />
-      </form>
-      <br />
-      {loginStatus.length > 0 && <span>{loginStatus}</span>}
+    <div className="mt-5">
+      <Row>
+        <Col></Col>
+        <Col>
+          <h2>Registration</h2>
+          <Form onSubmit={handleSubmit}>
+            <Form.Group className="mb-3" controlId="formUsername">
+              <Form.Control type="text" placeholder="Username" />
+            </Form.Group>
+            <Form.Group className="mb-3" controlId="formBasicPassword">
+              <Form.Control type="password" placeholder="Password" />
+            </Form.Group>
+            <Form.Group className="mb-3" controlId="formInviteCode">
+              <Form.Control type="text" placeholder="Invitation Code" />
+            </Form.Group>
+            <Button variant="primary" type="submit">
+              Submit
+            </Button>
+            &nbsp;
+            <Button variant="primary" onClick={() => setShowRegistrationForm(false)}>
+              Cancel
+            </Button>
+          </Form>
+        </Col>
+        <Col></Col>
+      </Row>
+      <Col></Col>
+      <Col>
+        <Row>{loginStatus.length > 0 && <span>{loginStatus}</span>}</Row>
+      </Col>
+      <Col></Col>
     </div>
   );
 };
 
 const App = (props: AppProps) => {
   const router = useRouter();
-  const [showLoginForm, setShowLoginForm] = useState(false);
   const [showRegistrationForm, setShowRegistrationForm] = useState(false);
 
   useEffect(() => {
     if (props.loggedIn) router.push('/home');
   }, []);
 
-  return (
-    <div>
-      <div style={{ margin: '20px', textAlign: 'center' }}>
-        <button
-          onClick={() => {
-            setShowRegistrationForm(false);
-            setShowLoginForm(true);
-          }}
-        >
-          Login
-        </button>
-        <button
-          onClick={() => {
-            setShowLoginForm(false);
-            setShowRegistrationForm(true);
-          }}
-        >
-          Register
-        </button>
-      </div>
-      <div>
-        {showLoginForm && <LoginForm setShowLoginForm={setShowLoginForm} />}
-        {showRegistrationForm && <RegistrationForm setShowRegistrationForm={setShowRegistrationForm} />}
-      </div>
-    </div>
-  );
+  if (!showRegistrationForm)
+    return (
+      <Container className="mt-5">
+        <Row>
+          <Col></Col>
+          <Col>
+            <h3>Login to continue.</h3>
+            <h6>
+              Have an invitation code?{' '}
+              <a href="#" onClick={setShowRegistrationForm.bind(null, true)}>
+                Sign up
+              </a>
+            </h6>
+          </Col>
+          <Col></Col>
+        </Row>
+        <Row className="mt-3">
+          <Col></Col>
+          <Col>
+            <LoginForm />
+          </Col>
+          <Col></Col>
+        </Row>
+      </Container>
+    );
+  else
+    return (
+      <Container>
+        <RegistrationForm setShowRegistrationForm={setShowRegistrationForm} />
+      </Container>
+    );
 };
 
 export default (props: AppProps) => {

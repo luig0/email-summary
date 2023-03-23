@@ -1,13 +1,9 @@
-.fieldset {
-  text-align: right;
-  border-width: 0px;
-}
-
 .main {
   display: flex;
   flex-direction: column;
   align-items: center;
   min-height: 100vh;
+  font-family: Arial, sans-serif;
 }
 
 /* .main {
