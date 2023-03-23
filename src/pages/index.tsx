@@ -19,6 +19,10 @@ interface AppProps {
   username?: string;
 }
 
+interface LoginFormProps {
+  setShowRegistrationForm: (arg: boolean) => void;
+}
+
 interface RegistrationFormProps {
   setShowRegistrationForm: (arg: boolean) => void;
 }
@@ -47,7 +51,7 @@ export const getServerSideProps: GetServerSideProps<AppProps> = async (context) 
   return { props };
 };
 
-const LoginForm = () => {
+const LoginForm = (props: LoginFormProps) => {
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     const username = (document.getElementById('formUsername') as HTMLInputElement)?.value;
@@ -64,11 +68,18 @@ const LoginForm = () => {
     if (res.status === 200 && res.statusText === messages.OK) location.reload();
   };
 
+  const { setShowRegistrationForm } = props;
   const [loginStatus, setLoginStatus] = useState('');
 
   return (
     <>
-      <Form onSubmit={handleSubmit}>
+      <div>
+        Have an invitation code?{' '}
+        <a href="#" onClick={setShowRegistrationForm.bind(null, true)}>
+          Sign up
+        </a>
+      </div>
+      <Form onSubmit={handleSubmit} className="mt-3">
         <Form.Group className="mb-2" controlId="formUsername">
           <Form.Control type="text" placeholder="Username" />
         </Form.Group>
@@ -113,39 +124,31 @@ const RegistrationForm = (props: RegistrationFormProps) => {
   const [loginStatus, setLoginStatus] = useState('');
 
   return (
-    <div className="mt-5">
-      <Row>
-        <Col></Col>
-        <Col>
-          <h2>Registration</h2>
-          <div>
-            Have an account?{' '}
-            <a href="#" onClick={setShowRegistrationForm.bind(null, false)}>
-              Sign in
-            </a>
-          </div>
-          <Form onSubmit={handleSubmit} className="mt-3">
-            <Form.Group className="mb-2" controlId="formUsername">
-              <Form.Control type="text" placeholder="Username" />
-            </Form.Group>
-            <Form.Group className="mb-2" controlId="formBasicPassword">
-              <Form.Control type="password" placeholder="Password" />
-            </Form.Group>
-            <Form.Group className="mb-2" controlId="formInviteCode">
-              <Form.Control type="text" placeholder="Invitation Code" />
-            </Form.Group>
-            <div className="d-grid gap-2">
-              <Button variant="primary" type="submit">
-                Submit
-              </Button>
-            </div>
-          </Form>
-          <br />
-          <div>{loginStatus.length > 0 && <span>{loginStatus}</span>}</div>
-        </Col>
-        <Col></Col>
-      </Row>
-      <Col></Col>
+    <div>
+      <div>
+        Have an account?{' '}
+        <a href="#" onClick={setShowRegistrationForm.bind(null, false)}>
+          Sign in
+        </a>
+      </div>
+      <Form onSubmit={handleSubmit} className="mt-3">
+        <Form.Group className="mb-2" controlId="formUsername">
+          <Form.Control type="text" placeholder="Username" />
+        </Form.Group>
+        <Form.Group className="mb-2" controlId="formBasicPassword">
+          <Form.Control type="password" placeholder="Password" />
+        </Form.Group>
+        <Form.Group className="mb-2" controlId="formInviteCode">
+          <Form.Control type="text" placeholder="Invitation Code" />
+        </Form.Group>
+        <div className="d-grid gap-2">
+          <Button variant="primary" type="submit">
+            Register
+          </Button>
+        </div>
+      </Form>
+      <br />
+      <div>{loginStatus.length > 0 && <span>{loginStatus}</span>}</div>
     </div>
   );
 };
@@ -158,37 +161,25 @@ const App = (props: AppProps) => {
     if (props.loggedIn) router.push('/home');
   }, []);
 
-  if (!showRegistrationForm)
-    return (
-      <Container className="mt-5">
-        <Row>
-          <Col></Col>
-          <Col>
-            <h1>Welcome to my super secret website.</h1>
-            <div>
-              Have an invitation code?{' '}
-              <a href="#" onClick={setShowRegistrationForm.bind(null, true)}>
-                Sign up
-              </a>
-            </div>
-          </Col>
-          <Col></Col>
-        </Row>
-        <Row className="mt-3">
-          <Col></Col>
-          <Col>
-            <LoginForm />
-          </Col>
-          <Col></Col>
-        </Row>
-      </Container>
-    );
-  else
-    return (
-      <Container>
-        <RegistrationForm setShowRegistrationForm={setShowRegistrationForm} />
-      </Container>
-    );
+  return (
+    <Container className="mt-5">
+      <Row>
+        <Col></Col>
+        <Col>
+          <h1>Welcome to my super secret website.</h1>
+        </Col>
+        <Col></Col>
+      </Row>
+      <Row>
+        <Col></Col>
+        <Col>
+          {!showRegistrationForm && <LoginForm setShowRegistrationForm={setShowRegistrationForm} />}
+          {showRegistrationForm && <RegistrationForm setShowRegistrationForm={setShowRegistrationForm} />}
+        </Col>
+        <Col></Col>
+      </Row>
+    </Container>
+  );
 };
 
 export default (props: AppProps) => {
