@@ -158,13 +158,14 @@ const App = (props: AppProps) => {
         <Row>
           <Col></Col>
           <Col>
-            <h3>Login to continue.</h3>
-            <h6>
+            <h1>Welcome to my super secret website.</h1>
+            <h6>Login to continue.</h6>
+            <div>
               Have an invitation code?{' '}
               <a href="#" onClick={setShowRegistrationForm.bind(null, true)}>
                 Sign up
               </a>
-            </h6>
+            </div>
           </Col>
           <Col></Col>
         </Row>
