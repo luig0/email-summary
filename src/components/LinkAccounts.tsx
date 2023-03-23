@@ -18,7 +18,8 @@ const Link: React.FC<LinkProps> = (props: LinkProps) => {
       body: JSON.stringify({ public_token }),
     });
     // Handle response ...
-    console.log('onSuccess, response data:', await response.json());
+    console.log('onSuccess, response data:', response.statusText);
+    location.reload();
   }, []);
 
   const config: Parameters<typeof usePlaidLink>[0] = {
