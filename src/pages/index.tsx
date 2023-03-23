@@ -69,15 +69,17 @@ const LoginForm = () => {
   return (
     <>
       <Form onSubmit={handleSubmit}>
-        <Form.Group className="mb-3" controlId="formUsername">
+        <Form.Group className="mb-2" controlId="formUsername">
           <Form.Control type="text" placeholder="Username" />
         </Form.Group>
-        <Form.Group className="mb-3" controlId="formBasicPassword">
+        <Form.Group className="mb-2" controlId="formBasicPassword">
           <Form.Control type="password" placeholder="Password" />
         </Form.Group>
-        <Button variant="primary" type="submit">
-          Submit
-        </Button>
+        <div className="d-grid gap-2">
+          <Button variant="primary" type="submit">
+            Sign in
+          </Button>
+        </div>
       </Form>
       <br />
       {loginStatus.length > 0 && <span>{loginStatus}</span>}
@@ -116,23 +118,27 @@ const RegistrationForm = (props: RegistrationFormProps) => {
         <Col></Col>
         <Col>
           <h2>Registration</h2>
-          <Form onSubmit={handleSubmit}>
-            <Form.Group className="mb-3" controlId="formUsername">
+          <div>
+            Have an account?{' '}
+            <a href="#" onClick={setShowRegistrationForm.bind(null, false)}>
+              Sign in
+            </a>
+          </div>
+          <Form onSubmit={handleSubmit} className="mt-3">
+            <Form.Group className="mb-2" controlId="formUsername">
               <Form.Control type="text" placeholder="Username" />
             </Form.Group>
-            <Form.Group className="mb-3" controlId="formBasicPassword">
+            <Form.Group className="mb-2" controlId="formBasicPassword">
               <Form.Control type="password" placeholder="Password" />
             </Form.Group>
-            <Form.Group className="mb-3" controlId="formInviteCode">
+            <Form.Group className="mb-2" controlId="formInviteCode">
               <Form.Control type="text" placeholder="Invitation Code" />
             </Form.Group>
-            <Button variant="primary" type="submit">
-              Submit
-            </Button>
-            &nbsp;
-            <Button variant="primary" onClick={() => setShowRegistrationForm(false)}>
-              Cancel
-            </Button>
+            <div className="d-grid gap-2">
+              <Button variant="primary" type="submit">
+                Submit
+              </Button>
+            </div>
           </Form>
           <br />
           <div>{loginStatus.length > 0 && <span>{loginStatus}</span>}</div>
@@ -159,7 +165,6 @@ const App = (props: AppProps) => {
           <Col></Col>
           <Col>
             <h1>Welcome to my super secret website.</h1>
-            <h6>Login to continue.</h6>
             <div>
               Have an invitation code?{' '}
               <a href="#" onClick={setShowRegistrationForm.bind(null, true)}>
