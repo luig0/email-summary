@@ -1,6 +1,7 @@
 import { GetServerSideProps } from 'next';
 import Image from 'next/image';
 import Link from 'next/link';
+import { useRouter } from 'next/router';
 import styles from '@/styles/Config.module.css';
 import { useState } from 'react';
 
@@ -70,6 +71,7 @@ const sendMail = async () => {
 };
 
 export default (props: HomeProps) => {
+  const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
 
   return (
@@ -78,40 +80,57 @@ export default (props: HomeProps) => {
         <Row>
           <Col></Col>
           <Col xs={8}>
-            <div>
-              <h2>
-                Logged in as {props.username} (<Link href="/logout">logout</Link>) &nbsp;
-                {isLoading && <Image src="/loading.svg" alt="loading" width="24" height="24" />}
-              </h2>
-            </div>
-            <table>
-              <thead>
-                <tr>
-                  <td>access_token</td>
-                  <td>date_created</td>
-                  <td>transactions</td>
-                  <td>info</td>
-                </tr>
-              </thead>
-              <tbody>
-                {props.records.map((r, index) => (
-                  <tr key={`access_token_${index}`}>
-                    <td>{r.access_token}</td>
-                    <td>{r.date_created}</td>
-                    <td>
-                      <a href="#" onClick={getTransactions.bind(null, r.access_token)}>
-                        txs
-                      </a>
-                    </td>
-                    <td>
-                      <a href="#" onClick={getInfo.bind(null, r.access_token)}>
-                        info
-                      </a>
-                    </td>
+            <Row className="mb-5">
+              <Col>
+                <h2>
+                  Hi, {props.username}! &nbsp;
+                  {isLoading && <Image src="/loading.svg" alt="loading" width="24" height="24" />}
+                </h2>
+              </Col>
+              <Col className="text-end">
+                <h2>
+                  <Button
+                    variant="light"
+                    onClick={() => {
+                      router.push('/logout');
+                    }}
+                  >
+                    Sign out
+                  </Button>
+                  {/* <Link href="/logout">logout</Link> */}
+                </h2>
+              </Col>
+            </Row>
+            <Row>
+              <table>
+                <thead>
+                  <tr>
+                    <td>access_token</td>
+                    <td>date_created</td>
+                    <td>transactions</td>
+                    <td>info</td>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody>
+                  {props.records.map((r, index) => (
+                    <tr key={`access_token_${index}`}>
+                      <td>{r.access_token}</td>
+                      <td>{r.date_created}</td>
+                      <td>
+                        <a href="#" onClick={getTransactions.bind(null, r.access_token)}>
+                          txs
+                        </a>
+                      </td>
+                      <td>
+                        <a href="#" onClick={getInfo.bind(null, r.access_token)}>
+                          info
+                        </a>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </Row>
           </Col>
           <Col></Col>
         </Row>
