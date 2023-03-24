@@ -1,14 +1,17 @@
 import { GetServerSideProps } from 'next';
+import Image from 'next/image';
 import Link from 'next/link';
 import styles from '@/styles/Config.module.css';
+import { useState } from 'react';
 
 import Container from 'react-bootstrap/Container';
 import Row from 'react-bootstrap/Row';
 import Col from 'react-bootstrap/Col';
+import Button from 'react-bootstrap/Button';
 
 import * as db from '@/lib/database/Adapter';
+import type { AccessTokenRecord } from '@/lib/database/Adapter';
 import LinkAccounts from '@/components/LinkAccounts';
-import { AccessTokenRecord } from '@/lib/database/Adapter';
 
 interface HomeProps {
   username: string;
@@ -52,7 +55,23 @@ const getTransactions = async (accessToken: string) => {
   console.log(await fetchResult.json());
 };
 
+const sendMail = async () => {
+  const fetchResult = await fetch('/api/sendmail', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      to: 'jhcao.g1@gmail.com',
+      subject: 'sending a test mail from email-summary',
+      text: 'huzzah! nodemailer worked with gmail from my app!',
+    }),
+  });
+};
+
 export default (props: HomeProps) => {
+  const [isLoading, setIsLoading] = useState(false);
+
   return (
     <main className={styles.main}>
       <Container className="mt-5">
@@ -61,7 +80,8 @@ export default (props: HomeProps) => {
           <Col xs={8}>
             <div>
               <h2>
-                Logged in as {props.username} (<Link href="/logout">logout</Link>)
+                Logged in as {props.username} (<Link href="/logout">logout</Link>) &nbsp;
+                {isLoading && <Image src="/loading.svg" alt="loading" width="24" height="24" />}
               </h2>
             </div>
             <table>
@@ -98,7 +118,12 @@ export default (props: HomeProps) => {
         <Row className="mt-5">
           <Col></Col>
           <Col xs={8} className="text-center">
-            <LinkAccounts />
+            <Row>
+              <LinkAccounts />
+            </Row>
+            <Row className="mt-2">
+              <Button onClick={sendMail}>Send test mail</Button>
+            </Row>
           </Col>
           <Col></Col>
         </Row>
