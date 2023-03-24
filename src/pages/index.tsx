@@ -165,14 +165,8 @@ const App = (props: AppProps) => {
     <Container className="mt-5">
       <Row>
         <Col></Col>
-        <Col>
+        <Col xs={6}>
           <h1>Welcome to my super secret website.</h1>
-        </Col>
-        <Col></Col>
-      </Row>
-      <Row>
-        <Col></Col>
-        <Col>
           {!showRegistrationForm && <LoginForm setShowRegistrationForm={setShowRegistrationForm} />}
           {showRegistrationForm && <RegistrationForm setShowRegistrationForm={setShowRegistrationForm} />}
         </Col>
