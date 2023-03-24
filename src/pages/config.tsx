@@ -118,12 +118,11 @@ export default (props: HomeProps) => {
         <Row className="mt-5">
           <Col></Col>
           <Col xs={8} className="text-center">
-            <Row>
-              <LinkAccounts />
-            </Row>
-            <Row className="mt-2">
-              <Button onClick={sendMail}>Send test mail</Button>
-            </Row>
+            <LinkAccounts />
+            <br />
+            <Button className="mt-2" onClick={sendMail}>
+              Send test mail
+            </Button>
           </Col>
           <Col></Col>
         </Row>
