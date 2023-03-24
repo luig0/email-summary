@@ -102,17 +102,17 @@ const AccountsPanel = () => {
           {data.map((ins: Institution, index) => {
             const accounts = ins.accounts;
             return (
-              <div key={`ins-${index}`}>
+              <div key={`ins-${index}`} className="p-0">
                 <Table bordered>
                   <thead>
                     <tr>
-                      <td>{ins.name}</td>
+                      <td className="ps-3 fs-3">{ins.name}</td>
                     </tr>
                   </thead>
                   <tbody>
                     {accounts.map((acc, accIndex) => (
                       <tr key={`acc-${index}-${accIndex}`}>
-                        <td>{acc.official_name}</td>
+                        <td className="ps-5">{acc.official_name}</td>
                       </tr>
                     ))}
                   </tbody>
