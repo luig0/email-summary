@@ -1,22 +1,21 @@
 import { GetServerSideProps } from 'next';
 import Image from 'next/image';
-import Link from 'next/link';
 import { useRouter } from 'next/router';
 import styles from '@/styles/Config.module.css';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 
 import Container from 'react-bootstrap/Container';
 import Row from 'react-bootstrap/Row';
 import Col from 'react-bootstrap/Col';
 import Button from 'react-bootstrap/Button';
+import Table from 'react-bootstrap/Table';
 
 import * as db from '@/lib/database/Adapter';
-import type { AccessTokenRecord } from '@/lib/database/Adapter';
 import LinkAccounts from '@/components/LinkAccounts';
+import type { Institution } from './api/accounts';
 
 interface HomeProps {
   username: string;
-  records: AccessTokenRecord[];
 }
 
 export const getServerSideProps: GetServerSideProps = async ({ req }) => {
@@ -33,8 +32,7 @@ export const getServerSideProps: GetServerSideProps = async ({ req }) => {
 
   try {
     const { username } = await db.getSessionAndUser(sessionToken);
-    const records = await db.getAccessTokens(username);
-    return { props: { username, records } };
+    return { props: { username } };
   } catch (error) {
     return {
       redirect: {
@@ -47,7 +45,7 @@ export const getServerSideProps: GetServerSideProps = async ({ req }) => {
 };
 
 const getInfo = async (accessToken: string) => {
-  const fetchResult = await fetch(`/api/info?access_token=${accessToken}`);
+  const fetchResult = await fetch(`/api/accounts?access_token=${accessToken}`);
   console.log(await fetchResult.json());
 };
 
@@ -70,9 +68,66 @@ const sendMail = async () => {
   });
 };
 
+const AccountsPanel = () => {
+  useEffect(() => {
+    (async () => {
+      setIsLoading(true);
+
+      const fetchResult = await fetch('/api/accounts');
+      const institutions = await fetchResult.json();
+      setData(institutions);
+
+      setIsLoading(false);
+    })();
+  }, []);
+
+  const [isLoading, setIsLoading] = useState(false);
+  const [data, setData] = useState([]);
+
+  return (
+    <>
+      <h2 className="p-0">
+        Accounts
+        {isLoading && (
+          <>
+            <span className={styles['loading-text']} style={{ fontSize: '16px' }}>
+              &nbsp;&nbsp;Loading&nbsp;
+            </span>
+            <Image src="/loading.svg" alt="loading" width="16" height="16" />
+          </>
+        )}
+      </h2>
+      {data.length > 0 && (
+        <>
+          {data.map((ins: Institution, index) => {
+            const accounts = ins.accounts;
+            return (
+              <div key={`ins-${index}`}>
+                <Table bordered>
+                  <thead>
+                    <tr>
+                      <td>{ins.name}</td>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {accounts.map((acc, accIndex) => (
+                      <tr key={`acc-${index}-${accIndex}`}>
+                        <td>{acc.official_name}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </Table>
+              </div>
+            );
+          })}
+        </>
+      )}
+    </>
+  );
+};
+
 export default (props: HomeProps) => {
   const router = useRouter();
-  const [isLoading, setIsLoading] = useState(false);
 
   return (
     <main className={styles.main}>
@@ -81,11 +136,8 @@ export default (props: HomeProps) => {
           <Col></Col>
           <Col xs={8}>
             <Row className="mb-5">
-              <Col>
-                <h2>
-                  Hi, {props.username}! &nbsp;
-                  {isLoading && <Image src="/loading.svg" alt="loading" width="24" height="24" />}
-                </h2>
+              <Col className="p-0">
+                <h1>Hi, {props.username}! &nbsp;</h1>
               </Col>
               <Col className="text-end">
                 <h2>
@@ -102,34 +154,7 @@ export default (props: HomeProps) => {
               </Col>
             </Row>
             <Row>
-              <table>
-                <thead>
-                  <tr>
-                    <td>access_token</td>
-                    <td>date_created</td>
-                    <td>transactions</td>
-                    <td>info</td>
-                  </tr>
-                </thead>
-                <tbody>
-                  {props.records.map((r, index) => (
-                    <tr key={`access_token_${index}`}>
-                      <td>{r.access_token}</td>
-                      <td>{r.date_created}</td>
-                      <td>
-                        <a href="#" onClick={getTransactions.bind(null, r.access_token)}>
-                          txs
-                        </a>
-                      </td>
-                      <td>
-                        <a href="#" onClick={getInfo.bind(null, r.access_token)}>
-                          info
-                        </a>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+              <AccountsPanel />
             </Row>
           </Col>
           <Col></Col>
