@@ -49,6 +49,18 @@ const db = new sqlite3.Database(DB_PATH, async (err) => {
     `;
 
     await db.run(createAccessTokensTable);
+
+    const createInstitutionsTable = `
+      CREATE TABLE IF NOT EXISTS institutions (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        institution_id TEXT UNIQUE NOT NULL,
+        name TEXT,
+        date_created TEXT NOT NULL,
+        date_modified TEXT
+      );
+    `;
+
+    await db.run(createInstitutionsTable);
   }
 });
 
