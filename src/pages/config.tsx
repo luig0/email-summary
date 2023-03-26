@@ -132,8 +132,8 @@ const AccountsPanel = () => {
                     {accounts.map((acc, accIndex) => {
                       return (
                         <tr key={`acc-${insIndex}-${accIndex}`}>
-                          <td className="ps-5 align-middle">{acc.official_name}</td>
-                          <td className="text-center">
+                          <td className="ps-5 align-middle border-end-0">{acc.official_name}</td>
+                          <td className="text-center border-start-0">
                             <ButtonGroup size="sm">
                               <ToggleButton
                                 id={`toggle-daily-${insIndex}-${accIndex}`}

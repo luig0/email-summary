@@ -70,6 +70,11 @@ interface GetSessionAndUserResponse {
   expires_at: string;
 }
 
+interface InstitutionRecord {
+  institution_id: string;
+  name: string;
+}
+
 function isSessionExpired(expiresAt: string): boolean {
   return Date.now() - new Date(expiresAt).getTime() > 0;
 }
@@ -197,5 +202,37 @@ export async function getAccessTokens(username: string): Promise<AccessTokenReco
   } catch (error: any) {
     console.log('Adapter.ts error:', error.message);
     throw new Error(messages.INTERNAL_SERVER_ERROR);
+  }
+}
+
+export async function createInstitution(institutionId: string, institutionName: string) {
+  try {
+    await dao.run(
+      `
+        INSERT INTO institutions (institution_id, name, date_created, date_modified)
+        VALUES (
+          ?,
+          ?,
+          ?,
+          ?
+        );
+    `,
+      [institutionId, institutionName, new Date().toISOString(), null]
+    );
+  } catch (error: any) {
+    throw new Error(error.message);
+  }
+}
+
+export async function getInstitution(institutionId: string): Promise<InstitutionRecord> {
+  try {
+    return await dao.get(
+      `
+        SELECT institution_id, name FROM institutions WHERE institution_id=?
+      `,
+      [institutionId]
+    );
+  } catch (error: any) {
+    throw new Error(error.message);
   }
 }
