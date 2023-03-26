@@ -126,7 +126,7 @@ const AccountsPanel = () => {
                       <td className="ps-3 fs-4 border-end-0">{ins.name}</td>
                       <td className="align-middle text-end border-start-0">
                         <Button variant="danger" size="sm">
-                          Delete
+                          Remove
                         </Button>
                       </td>
                     </tr>
@@ -135,13 +135,15 @@ const AccountsPanel = () => {
                     {accounts.map((acc, accIndex) => {
                       return (
                         <tr key={`acc-${insIndex}-${accIndex}`}>
-                          <td className="ps-5 align-middle border-end-0">{acc.official_name}</td>
+                          <td className="ps-5 align-middle border-end-0">
+                            {acc.official_name} ({acc.mask})
+                          </td>
                           <td className="text-center border-start-0">
                             <ButtonGroup size="sm">
                               <ToggleButton
                                 id={`toggle-daily-${insIndex}-${accIndex}`}
                                 type="checkbox"
-                                variant="outline-primary"
+                                variant="outline-dark"
                                 checked={daily![insIndex][accIndex]}
                                 value="d"
                                 onChange={(e) => {
@@ -155,7 +157,7 @@ const AccountsPanel = () => {
                               <ToggleButton
                                 id={`toggle-weekly-${insIndex}-${accIndex}`}
                                 type="checkbox"
-                                variant="outline-primary"
+                                variant="outline-dark"
                                 checked={weekly![insIndex][accIndex]}
                                 value="w"
                                 onChange={(e) => {
@@ -169,7 +171,7 @@ const AccountsPanel = () => {
                               <ToggleButton
                                 id={`toggle-monthly-${insIndex}-${accIndex}`}
                                 type="checkbox"
-                                variant="outline-primary"
+                                variant="outline-dark"
                                 checked={monthly![insIndex][accIndex]}
                                 value="m"
                                 onChange={(e) => {
