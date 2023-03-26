@@ -4,7 +4,6 @@ import { useRouter } from 'next/router';
 import styles from '@/styles/Home.module.css';
 import { useEffect, useState } from 'react';
 
-import 'bootstrap/dist/css/bootstrap.min.css';
 import Container from 'react-bootstrap/Container';
 import Button from 'react-bootstrap/Button';
 import Form from 'react-bootstrap/Form';
@@ -158,7 +157,7 @@ const App = (props: AppProps) => {
   const [showRegistrationForm, setShowRegistrationForm] = useState(false);
 
   useEffect(() => {
-    if (props.loggedIn) router.push('/home');
+    if (props.loggedIn) router.push('/config');
   }, []);
 
   return (

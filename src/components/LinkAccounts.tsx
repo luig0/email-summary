@@ -1,6 +1,9 @@
 import { useCallback, useEffect, useState } from 'react';
 import { usePlaidLink, PlaidLinkOnSuccessMetadata } from 'react-plaid-link';
 
+import Button from 'react-bootstrap/Button';
+import Spinner from 'react-bootstrap/Spinner';
+
 // LINK COMPONENT
 // Use Plaid Link and pass link token and onSuccess function
 // in configuration to initialize Plaid Link
@@ -31,9 +34,9 @@ const Link: React.FC<LinkProps> = (props: LinkProps) => {
   const { open, ready } = usePlaidLink(config);
 
   return (
-    <button onClick={() => open()} disabled={!ready}>
-      Link account
-    </button>
+    <Button variant="outline-primary" onClick={() => open()} disabled={!ready}>
+      Link bank accounts
+    </Button>
   );
 };
 
@@ -56,5 +59,13 @@ export default () => {
     generateToken();
   }, []);
 
-  return linkToken !== null ? <Link linkToken={linkToken} /> : <>Fetching link token. Please wait.</>;
+  return linkToken !== null ? (
+    <Link linkToken={linkToken} />
+  ) : (
+    <>
+      <Button variant="secondary" disabled>
+        <Spinner animation="border" size="sm" /> Loading link component..
+      </Button>
+    </>
+  );
 };

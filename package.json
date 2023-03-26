@@ -17,6 +17,7 @@
     "eslint": "8.36.0",
     "eslint-config-next": "13.2.4",
     "next": "13.2.4",
+    "nodemailer": "^6.9.1",
     "plaid": "^12.5.0",
     "react": "18.2.0",
     "react-bootstrap": "^2.7.2",
@@ -27,6 +28,7 @@
   },
   "devDependencies": {
     "@types/bcrypt": "^5.0.0",
+    "@types/nodemailer": "^6.4.7",
     "@types/plaid-link": "^2.0.11",
     "ts-node": "^10.9.1"
   }
