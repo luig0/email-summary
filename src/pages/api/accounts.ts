@@ -48,18 +48,33 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             const accounts = response.data.accounts;
 
             for (const account of accounts) {
+              let dbInstitution;
+
               if (!institution_id) {
                 institution_id = response.data.item.institution_id || '';
 
                 try {
-                  const insRequest: InstitutionsGetByIdRequest = {
-                    institution_id,
-                    country_codes: ['US'] as CountryCode[],
-                  };
-                  const insResponse = await plaidClient.institutionsGetById(insRequest);
-                  const institution = insResponse.data.institution;
+                  if (!institution_name) {
+                    dbInstitution = await db.getInstitution(institution_id);
+                  }
 
-                  institution_name = institution.name || '';
+                  if (dbInstitution) {
+                    institution_name = dbInstitution.name;
+                  } else {
+                    const insRequest: InstitutionsGetByIdRequest = {
+                      institution_id,
+                      country_codes: ['US'] as CountryCode[],
+                    };
+                    const insResponse = await plaidClient.institutionsGetById(insRequest);
+                    const institution = insResponse.data.institution;
+                    institution_name = institution.name || '';
+
+                    try {
+                      await db.createInstitution(institution_id, institution_name);
+                    } catch (error: any) {
+                      console.log('plaid GET institutions, createInstitution error:', error.message);
+                    }
+                  }
                 } catch (error: any) {
                   // Handle error
                   console.log('plaid GET institutions error:', error.message);
