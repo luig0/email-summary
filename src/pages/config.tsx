@@ -1,5 +1,4 @@
 import { GetServerSideProps } from 'next';
-import Image from 'next/image';
 import { useRouter } from 'next/router';
 import styles from '@/styles/Config.module.css';
 import { useEffect, useState } from 'react';
@@ -9,6 +8,7 @@ import Row from 'react-bootstrap/Row';
 import Col from 'react-bootstrap/Col';
 import Button from 'react-bootstrap/Button';
 import Table from 'react-bootstrap/Table';
+import Spinner from 'react-bootstrap/Spinner';
 
 import * as db from '@/lib/database/Adapter';
 import LinkAccounts from '@/components/LinkAccounts';
@@ -86,17 +86,16 @@ const AccountsPanel = () => {
 
   return (
     <>
-      <h2 className="p-0">
-        Accounts
+      <div>
+        <span className="p-0 fs-1">Accounts</span>
         {isLoading && (
-          <>
-            <span className={styles['loading-text']} style={{ fontSize: '16px' }}>
-              &nbsp;&nbsp;Loading&nbsp;
-            </span>
-            <Image src="/loading.svg" alt="loading" width="16" height="16" />
-          </>
+          <span className={styles['loading-text']} style={{ fontSize: '16px' }}>
+            &nbsp;&nbsp;Loading&nbsp;
+            <Spinner animation="border" variant="primary" size="sm" />
+          </span>
         )}
-      </h2>
+      </div>
+
       {data.length > 0 && (
         <>
           {data.map((ins: Institution, index) => {

@@ -2,7 +2,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { usePlaidLink, PlaidLinkOnSuccessMetadata } from 'react-plaid-link';
 
 import Button from 'react-bootstrap/Button';
-import Image from 'next/image';
+import Spinner from 'react-bootstrap/Spinner';
 
 // LINK COMPONENT
 // Use Plaid Link and pass link token and onSuccess function
@@ -63,7 +63,9 @@ export default () => {
     <Link linkToken={linkToken} />
   ) : (
     <>
-      Fetching link token. Please wait. <Image src="/loading.svg" alt="loading" width="20" height="20" />
+      <Button variant="secondary" disabled>
+        <Spinner animation="border" size="sm" /> Loading link component..
+      </Button>
     </>
   );
 };
