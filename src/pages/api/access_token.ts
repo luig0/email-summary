@@ -33,7 +33,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     try {
       await db.deleteAccessToken(uuid);
-      res.status(204).send(messages.NO_CONTENT);
+      res.status(204).send('');
     } catch (error) {
       res.status(500).send(messages.INTERNAL_SERVER_ERROR);
     }
