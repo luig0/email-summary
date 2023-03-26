@@ -50,10 +50,13 @@
 
 import crypto from 'crypto';
 
+import { v4 as uuidv4 } from 'uuid';
+
 import * as dao from '@/lib/database/AppDAO';
 import * as messages from '@/lib/Messages';
 
 export interface AccessTokenRecord {
+  uuid: string;
   access_token: string;
   item_id: string;
   date_created: string;
@@ -169,22 +172,38 @@ export async function deleteSession(sessionToken: string): Promise<void> {
 }
 
 export async function createAccessToken(username: string, accessToken: string, itemId: string): Promise<void> {
+  let uuid = uuidv4();
+
+  // generate new uuid if this one is already used
+  try {
+    let result = await dao.get(`SELECT * FROM access_tokens WHERE uuid=?`, [uuid]);
+
+    while (result) {
+      uuid = uuidv4();
+      result = await dao.get(`SELECT * FROM access_tokens WHERE uuid=?`, [uuid]);
+    }
+  } catch (error: any) {
+    console.log('Adapter.ts, createAccessToken error:', error.message);
+    throw new Error(error.message);
+  }
+
   try {
     await dao.run(
       `
-        INSERT INTO access_tokens (user_id, access_token, item_id, date_created)
+        INSERT INTO access_tokens (user_id, uuid, access_token, item_id, date_created)
         VALUES (
           (SELECT id FROM users WHERE username=?),
+          ?,
           ?,
           ?,
           ?
         );
     `,
-      [username, accessToken, itemId, new Date().toISOString()]
+      [username, uuid, accessToken, itemId, new Date().toISOString()]
     );
   } catch (error: any) {
-    console.log('Adapter.ts error:', error.message);
-    throw new Error(messages.INTERNAL_SERVER_ERROR);
+    console.log('Adapter.ts, createAccessToken error:', error.message);
+    throw new Error(error.message);
   }
 }
 
@@ -192,7 +211,7 @@ export async function getAccessTokens(username: string): Promise<AccessTokenReco
   try {
     return await dao.all(
       `
-        SELECT access_token, item_id, date_created 
+        SELECT uuid, access_token, item_id, date_created 
         FROM access_tokens 
         WHERE user_id=(SELECT id FROM users WHERE username=?)
       `,

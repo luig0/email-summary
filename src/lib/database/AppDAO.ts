@@ -40,6 +40,7 @@ const db = new sqlite3.Database(DB_PATH, async (err) => {
       CREATE TABLE IF NOT EXISTS access_tokens (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         user_id INTEGER NOT NULL,
+        uuid TEXT UNIQUE NOT NULL,
         access_token TEXT NOT NULL,
         item_id TEXT NOT NULL,
         date_created TEXT NOT NULL,
