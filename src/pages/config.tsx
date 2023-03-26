@@ -95,7 +95,7 @@ const AccountsPanel = () => {
         <tbody>
           <tr>
             <td>
-              <span className="p-0 fs-1">Accounts</span>
+              <span className="p-2 fs-2">Accounts</span>
               {isLoading && (
                 <span className={styles['loading-text']} style={{ fontSize: '16px' }}>
                   &nbsp;&nbsp;Loading&nbsp;
@@ -123,8 +123,11 @@ const AccountsPanel = () => {
                 <Table bordered>
                   <thead>
                     <tr>
-                      <td colSpan={2} className="ps-3 fs-3">
-                        {ins.name}
+                      <td className="ps-3 fs-4 border-end-0">{ins.name}</td>
+                      <td className="align-middle text-end border-start-0">
+                        <Button variant="danger" size="sm">
+                          Delete
+                        </Button>
                       </td>
                     </tr>
                   </thead>
