@@ -9,6 +9,7 @@ export interface Institution {
   institution_id: string;
   name: string;
   accounts: Account[];
+  access_token_uuid: string;
 }
 
 interface Account {
@@ -90,7 +91,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             });
           }
 
-          institutions.push({ institution_id, name: institution_name || '', accounts: myAccounts });
+          institutions.push({
+            institution_id,
+            name: institution_name || '',
+            accounts: myAccounts,
+            access_token_uuid: accessTokenRecord.uuid,
+          });
         } catch (error: any) {
           // handle error
           console.log('plaid GET accounts error:', error.message);
