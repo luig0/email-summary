@@ -172,16 +172,15 @@ export async function createAccessToken(username: string, accessToken: string, i
   try {
     await dao.run(
       `
-        INSERT INTO access_tokens (user_id, access_token, item_id, date_created, date_modified)
+        INSERT INTO access_tokens (user_id, access_token, item_id, date_created)
         VALUES (
           (SELECT id FROM users WHERE username=?),
-          ?,
           ?,
           ?,
           ?
         );
     `,
-      [username, accessToken, itemId, new Date().toISOString(), null]
+      [username, accessToken, itemId, new Date().toISOString()]
     );
   } catch (error: any) {
     console.log('Adapter.ts error:', error.message);
@@ -209,7 +208,7 @@ export async function createInstitution(institutionId: string, institutionName: 
   try {
     await dao.run(
       `
-        INSERT INTO institutions (institution_id, name, date_created, date_modified)
+        INSERT INTO institutions (institution_id, name, date_created)
         VALUES (
           ?,
           ?,
@@ -217,7 +216,7 @@ export async function createInstitution(institutionId: string, institutionName: 
           ?
         );
     `,
-      [institutionId, institutionName, new Date().toISOString(), null]
+      [institutionId, institutionName, new Date().toISOString()]
     );
   } catch (error: any) {
     throw new Error(error.message);
