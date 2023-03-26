@@ -13,7 +13,7 @@ interface LinkProps {
 const Link: React.FC<LinkProps> = (props: LinkProps) => {
   const onSuccess = useCallback(async (public_token: string, metadata: PlaidLinkOnSuccessMetadata) => {
     // send public_token to server
-    const response = await fetch('/api/set_access_token', {
+    const response = await fetch('/api/access_token', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

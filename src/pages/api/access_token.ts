@@ -28,6 +28,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     } catch (error) {
       res.status(500).send(messages.INTERNAL_SERVER_ERROR);
     }
+  } else if (req.method === 'DELETE') {
+    
   } else {
     res.status(405).send(messages.METHOD_NOT_ALLOWED);
   }
