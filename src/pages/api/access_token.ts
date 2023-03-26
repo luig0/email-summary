@@ -29,7 +29,14 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       res.status(500).send(messages.INTERNAL_SERVER_ERROR);
     }
   } else if (req.method === 'DELETE') {
-    
+    const uuid = req.query.uuid as string;
+
+    try {
+      await db.deleteAccessToken(uuid);
+      res.status(204).send(messages.NO_CONTENT);
+    } catch (error) {
+      res.status(500).send(messages.INTERNAL_SERVER_ERROR);
+    }
   } else {
     res.status(405).send(messages.METHOD_NOT_ALLOWED);
   }

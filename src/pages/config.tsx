@@ -20,6 +20,11 @@ interface HomeProps {
   username: string;
 }
 
+interface AccountsPanelProps {
+  isLoading: boolean;
+  setIsLoading: (arg: boolean) => void;
+}
+
 export const getServerSideProps: GetServerSideProps = async ({ req }) => {
   const sessionToken = req.cookies['session-token'];
 
@@ -51,6 +56,11 @@ const getTransactions = async (accessToken: string) => {
   console.log(await fetchResult.json());
 };
 
+const removeAccessToken = async (uuid: string) => {
+  const fetchResult = await fetch(`/api/access_token?uuid=${uuid}`, { method: 'DELETE' });
+  if (fetchResult.ok) location.reload();
+};
+
 const sendMail = async () => {
   const fetchResult = await fetch('/api/sendmail', {
     method: 'POST',
@@ -65,7 +75,7 @@ const sendMail = async () => {
   });
 };
 
-const AccountsPanel = () => {
+const AccountsPanel = (props: AccountsPanelProps) => {
   useEffect(() => {
     (async () => {
       setIsLoading(true);
@@ -82,7 +92,7 @@ const AccountsPanel = () => {
     })();
   }, []);
 
-  const [isLoading, setIsLoading] = useState(false);
+  const { isLoading, setIsLoading } = props;
   const [accountData, setAccountData] = useState([]);
 
   const [daily, setDaily] = useState<boolean[][]>();
@@ -125,7 +135,11 @@ const AccountsPanel = () => {
                     <tr>
                       <td className="ps-3 fs-4 border-end-0">{ins.name}</td>
                       <td className="align-middle text-end border-start-0">
-                        <Button variant="danger" size="sm">
+                        <Button
+                          variant="danger"
+                          size="sm"
+                          onClick={removeAccessToken.bind(null, ins.access_token_uuid)}
+                        >
                           Remove
                         </Button>
                       </td>
@@ -223,6 +237,7 @@ const AccountsPanel = () => {
 
 export default (props: HomeProps) => {
   const router = useRouter();
+  const [isLoading, setIsLoading] = useState(false);
 
   return (
     <main className={styles.main}>
@@ -235,7 +250,7 @@ export default (props: HomeProps) => {
                 <h1>Hi, {props.username}! &nbsp;</h1>
               </Col>
               <Col className="text-end">
-                <LinkAccounts />
+                <LinkAccounts setIsLoading={setIsLoading} />
                 <Button
                   variant="outline-danger"
                   className="ms-1"
@@ -248,7 +263,7 @@ export default (props: HomeProps) => {
               </Col>
             </Row>
             <Row>
-              <AccountsPanel />
+              <AccountsPanel isLoading={isLoading} setIsLoading={setIsLoading} />
             </Row>
           </Col>
           <Col></Col>

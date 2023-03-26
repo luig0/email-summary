@@ -97,9 +97,9 @@ export async function createUser(username: string, passwordHash: string): Promis
         `,
         [username, passwordHash, new Date().toISOString(), null]
       );
-    } catch (error) {
-      console.log('Adapter.ts error:', error);
-      throw new Error(messages.INTERNAL_SERVER_ERROR);
+    } catch (error: any) {
+      console.log('Adapter.ts, createUser error:', error.message);
+      throw new Error(error.message);
     }
   } else {
     throw new Error(messages.USERNAME_ALREADY_TAKEN);
@@ -135,7 +135,7 @@ export async function createSession(username: string, expiresAt: Date): Promise<
 
     return sessionToken;
   } catch (error: any) {
-    console.log('Adapter.ts error:', error);
+    console.log('Adapter.ts, createSession error:', error);
     throw new Error(messages.INTERNAL_SERVER_ERROR);
   }
 }
@@ -157,7 +157,7 @@ export async function getSessionAndUser(sessionToken: string): Promise<GetSessio
   } catch (error: any) {
     if (error.message === messages.SESSION_HAS_EXPIRED) throw new Error(messages.SESSION_HAS_EXPIRED);
 
-    console.log('Adapter.ts error:', error.message);
+    console.log('Adapter.ts, getSessionAndUser error:', error.message);
     throw new Error(messages.INTERNAL_SERVER_ERROR);
   }
 }
@@ -223,13 +223,21 @@ export async function getAccessTokens(username: string): Promise<AccessTokenReco
   }
 }
 
+export async function deleteAccessToken(uuid: string): Promise<void> {
+  try {
+    await dao.run(`DELETE FROM access_tokens WHERE uuid=?`, [uuid]);
+  } catch (error: any) {
+    console.log('Adapter.ts, deleteAccessToken error:', error.message);
+    throw new Error(error.message);
+  }
+}
+
 export async function createInstitution(institutionId: string, institutionName: string) {
   try {
     await dao.run(
       `
-        INSERT INTO institutions (institution_id, name, date_created)
+        INSERT OR IGNORE INTO institutions (institution_id, name, date_created)
         VALUES (
-          ?,
           ?,
           ?,
           ?
