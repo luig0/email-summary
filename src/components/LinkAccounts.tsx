@@ -34,7 +34,7 @@ const Link: React.FC<LinkProps> = (props: LinkProps) => {
   const { open, ready } = usePlaidLink(config);
 
   return (
-    <Button variant="primary" onClick={() => open()} disabled={!ready}>
+    <Button variant="outline-primary" onClick={() => open()} disabled={!ready}>
       Link bank accounts
     </Button>
   );

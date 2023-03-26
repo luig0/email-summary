@@ -9,6 +9,8 @@ import Col from 'react-bootstrap/Col';
 import Button from 'react-bootstrap/Button';
 import Table from 'react-bootstrap/Table';
 import Spinner from 'react-bootstrap/Spinner';
+import ToggleButton from 'react-bootstrap/ToggleButton';
+import ButtonGroup from 'react-bootstrap/ButtonGroup';
 
 import * as db from '@/lib/database/Adapter';
 import LinkAccounts from '@/components/LinkAccounts';
@@ -42,11 +44,6 @@ export const getServerSideProps: GetServerSideProps = async ({ req }) => {
       props: {},
     };
   }
-};
-
-const getInfo = async (accessToken: string) => {
-  const fetchResult = await fetch(`/api/accounts?access_token=${accessToken}`);
-  console.log(await fetchResult.json());
 };
 
 const getTransactions = async (accessToken: string) => {
@@ -84,6 +81,10 @@ const AccountsPanel = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [data, setData] = useState([]);
 
+  const [daily, setDaily] = useState(false);
+  const [weekly, setWeekly] = useState(false);
+  const [monthly, setMonthly] = useState(false);
+
   return (
     <>
       <div>
@@ -105,13 +106,52 @@ const AccountsPanel = () => {
                 <Table bordered>
                   <thead>
                     <tr>
-                      <td className="ps-3 fs-3">{ins.name}</td>
+                      <td colSpan={2} className="ps-3 fs-3">
+                        {ins.name}
+                      </td>
                     </tr>
                   </thead>
                   <tbody>
                     {accounts.map((acc, accIndex) => (
                       <tr key={`acc-${index}-${accIndex}`}>
-                        <td className="ps-5">{acc.official_name}</td>
+                        <td className="ps-5 align-middle">{acc.official_name}</td>
+                        <td className="text-center">
+                          <ButtonGroup size="sm">
+                            <ToggleButton
+                              id="toggle-daily"
+                              type="checkbox"
+                              variant="outline-primary"
+                              checked={daily}
+                              value="1"
+                              onChange={(e) => setDaily(e.currentTarget.checked)}
+                            >
+                              Daily
+                            </ToggleButton>
+                            <ToggleButton
+                              id="toggle-weekly"
+                              type="checkbox"
+                              variant="outline-primary"
+                              checked={weekly}
+                              value="1"
+                              onChange={(e) => setWeekly(e.currentTarget.checked)}
+                            >
+                              Weekly
+                            </ToggleButton>
+                            <ToggleButton
+                              id="toggle-monthly"
+                              type="checkbox"
+                              variant="outline-primary"
+                              checked={monthly}
+                              value="1"
+                              onChange={(e) => setMonthly(e.currentTarget.checked)}
+                            >
+                              Monthly
+                            </ToggleButton>
+                          </ButtonGroup>
+                          <Button className="m-1" onClick={sendMail} size="sm">
+                            Send test mail
+                          </Button>
+                        </td>
                       </tr>
                     ))}
                   </tbody>
@@ -139,33 +179,21 @@ export default (props: HomeProps) => {
                 <h1>Hi, {props.username}! &nbsp;</h1>
               </Col>
               <Col className="text-end">
-                <h2>
-                  <Button
-                    variant="light"
-                    onClick={() => {
-                      router.push('/logout');
-                    }}
-                  >
-                    Sign out
-                  </Button>
-                  {/* <Link href="/logout">logout</Link> */}
-                </h2>
+                <LinkAccounts />
+                <Button
+                  variant="outline-danger"
+                  className="ms-1"
+                  onClick={() => {
+                    router.push('/logout');
+                  }}
+                >
+                  Sign out
+                </Button>
               </Col>
             </Row>
             <Row>
               <AccountsPanel />
             </Row>
-          </Col>
-          <Col></Col>
-        </Row>
-        <Row className="mt-5">
-          <Col></Col>
-          <Col xs={8} className="text-center">
-            <LinkAccounts />
-            <br />
-            <Button className="mt-2" onClick={sendMail}>
-              Send test mail
-            </Button>
           </Col>
           <Col></Col>
         </Row>
