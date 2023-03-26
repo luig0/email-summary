@@ -72,18 +72,24 @@ const AccountsPanel = () => {
 
       const fetchResult = await fetch('/api/accounts');
       const institutions = await fetchResult.json();
-      setData(institutions);
+      setAccountData(institutions);
+
+      // console.log(institutions);
+
+      setDaily(institutions.map((ins: Institution) => ins.accounts.map((acc) => false)));
+      setWeekly(institutions.map((ins: Institution) => ins.accounts.map((acc) => false)));
+      setMonthly(institutions.map((ins: Institution) => ins.accounts.map((acc) => false)));
 
       setIsLoading(false);
     })();
   }, []);
 
   const [isLoading, setIsLoading] = useState(false);
-  const [data, setData] = useState([]);
+  const [accountData, setAccountData] = useState([]);
 
-  const [daily, setDaily] = useState(false);
-  const [weekly, setWeekly] = useState(false);
-  const [monthly, setMonthly] = useState(false);
+  const [daily, setDaily] = useState<boolean[][]>();
+  const [weekly, setWeekly] = useState<boolean[][]>();
+  const [monthly, setMonthly] = useState<boolean[][]>();
 
   return (
     <>
@@ -97,12 +103,12 @@ const AccountsPanel = () => {
         )}
       </div>
 
-      {data.length > 0 && (
+      {accountData.length > 0 && (
         <>
-          {data.map((ins: Institution, index) => {
+          {accountData.map((ins: Institution, insIndex) => {
             const accounts = ins.accounts;
             return (
-              <div key={`ins-${index}`} className="p-0">
+              <div key={`ins-${insIndex}`} className="p-0">
                 <Table bordered>
                   <thead>
                     <tr>
@@ -112,48 +118,62 @@ const AccountsPanel = () => {
                     </tr>
                   </thead>
                   <tbody>
-                    {accounts.map((acc, accIndex) => (
-                      <tr key={`acc-${index}-${accIndex}`}>
-                        <td className="ps-5 align-middle">{acc.official_name}</td>
-                        <td className="text-center">
-                          <ButtonGroup size="sm">
-                            <ToggleButton
-                              id="toggle-daily"
-                              type="checkbox"
-                              variant="outline-primary"
-                              checked={daily}
-                              value="1"
-                              onChange={(e) => setDaily(e.currentTarget.checked)}
-                            >
-                              Daily
-                            </ToggleButton>
-                            <ToggleButton
-                              id="toggle-weekly"
-                              type="checkbox"
-                              variant="outline-primary"
-                              checked={weekly}
-                              value="1"
-                              onChange={(e) => setWeekly(e.currentTarget.checked)}
-                            >
-                              Weekly
-                            </ToggleButton>
-                            <ToggleButton
-                              id="toggle-monthly"
-                              type="checkbox"
-                              variant="outline-primary"
-                              checked={monthly}
-                              value="1"
-                              onChange={(e) => setMonthly(e.currentTarget.checked)}
-                            >
-                              Monthly
-                            </ToggleButton>
-                          </ButtonGroup>
-                          <Button className="m-1" onClick={sendMail} size="sm">
-                            Send test mail
-                          </Button>
-                        </td>
-                      </tr>
-                    ))}
+                    {accounts.map((acc, accIndex) => {
+                      return (
+                        <tr key={`acc-${insIndex}-${accIndex}`}>
+                          <td className="ps-5 align-middle">{acc.official_name}</td>
+                          <td className="text-center">
+                            <ButtonGroup size="sm">
+                              <ToggleButton
+                                id={`toggle-daily-${insIndex}-${accIndex}`}
+                                type="checkbox"
+                                variant="outline-primary"
+                                checked={daily![insIndex][accIndex]}
+                                value="d"
+                                onChange={(e) => {
+                                  const newDaily = JSON.parse(JSON.stringify(daily));
+                                  newDaily![insIndex][accIndex] = e.currentTarget.checked;
+                                  setDaily(newDaily);
+                                }}
+                              >
+                                Daily
+                              </ToggleButton>
+                              <ToggleButton
+                                id={`toggle-weekly-${insIndex}-${accIndex}`}
+                                type="checkbox"
+                                variant="outline-primary"
+                                checked={weekly![insIndex][accIndex]}
+                                value="w"
+                                onChange={(e) => {
+                                  const newWeekly = JSON.parse(JSON.stringify(weekly));
+                                  newWeekly![insIndex][accIndex] = e.currentTarget.checked;
+                                  setWeekly(newWeekly);
+                                }}
+                              >
+                                Weekly
+                              </ToggleButton>
+                              <ToggleButton
+                                id={`toggle-monthly-${insIndex}-${accIndex}`}
+                                type="checkbox"
+                                variant="outline-primary"
+                                checked={monthly![insIndex][accIndex]}
+                                value="m"
+                                onChange={(e) => {
+                                  const newMonthly = JSON.parse(JSON.stringify(monthly));
+                                  newMonthly![insIndex][accIndex] = e.currentTarget.checked;
+                                  setMonthly(newMonthly);
+                                }}
+                              >
+                                Monthly
+                              </ToggleButton>
+                            </ButtonGroup>
+                            <Button className="m-1" onClick={sendMail} size="sm">
+                              Send test mail
+                            </Button>
+                          </td>
+                        </tr>
+                      );
+                    })}
                   </tbody>
                 </Table>
               </div>
