@@ -74,8 +74,6 @@ const AccountsPanel = () => {
       const institutions = await fetchResult.json();
       setAccountData(institutions);
 
-      // console.log(institutions);
-
       setDaily(institutions.map((ins: Institution) => ins.accounts.map((acc) => false)));
       setWeekly(institutions.map((ins: Institution) => ins.accounts.map((acc) => false)));
       setMonthly(institutions.map((ins: Institution) => ins.accounts.map((acc) => false)));
@@ -93,15 +91,28 @@ const AccountsPanel = () => {
 
   return (
     <>
-      <div>
-        <span className="p-0 fs-1">Accounts</span>
-        {isLoading && (
-          <span className={styles['loading-text']} style={{ fontSize: '16px' }}>
-            &nbsp;&nbsp;Loading&nbsp;
-            <Spinner animation="border" variant="primary" size="sm" />
-          </span>
-        )}
-      </div>
+      <table>
+        <tbody>
+          <tr>
+            <td>
+              <span className="p-0 fs-1">Accounts</span>
+              {isLoading && (
+                <span className={styles['loading-text']} style={{ fontSize: '16px' }}>
+                  &nbsp;&nbsp;Loading&nbsp;
+                  <Spinner animation="border" variant="primary" size="sm" />
+                </span>
+              )}
+            </td>
+            <td className="text-end">
+              {!isLoading && (
+                <Button className="m-1" onClick={sendMail} size="sm">
+                  Send test mail
+                </Button>
+              )}
+            </td>
+          </tr>
+        </tbody>
+      </table>
 
       {accountData.length > 0 && (
         <>
@@ -167,8 +178,28 @@ const AccountsPanel = () => {
                                 Monthly
                               </ToggleButton>
                             </ButtonGroup>
-                            <Button className="m-1" onClick={sendMail} size="sm">
-                              Send test mail
+
+                            <Button
+                              variant="outline-dark"
+                              className="m-1"
+                              onClick={() => {
+                                const newState = !daily![insIndex][accIndex];
+
+                                const newDaily = JSON.parse(JSON.stringify(daily));
+                                newDaily![insIndex][accIndex] = newState;
+                                setDaily(newDaily);
+
+                                const newWeekly = JSON.parse(JSON.stringify(weekly));
+                                newWeekly![insIndex][accIndex] = newState;
+                                setWeekly(newWeekly);
+
+                                const newMonthly = JSON.parse(JSON.stringify(monthly));
+                                newMonthly![insIndex][accIndex] = newState;
+                                setMonthly(newMonthly);
+                              }}
+                              size="sm"
+                            >
+                              Toggle All
                             </Button>
                           </td>
                         </tr>
