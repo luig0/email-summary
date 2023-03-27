@@ -28,7 +28,7 @@ const Link: React.FC<LinkProps> = (props: LinkProps) => {
       body: JSON.stringify({ public_token }),
     });
     // Handle response ...
-    console.log('Link onSuccess, response data:', response.statusText);
+    // console.log('Link onSuccess, response data:', response.statusText);
     setIsLoading(false);
     props.fetchAccounts();
   }, []);
