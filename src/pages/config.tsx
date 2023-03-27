@@ -17,7 +17,7 @@ import LinkAccounts from '@/components/LinkAccounts';
 import type { AccountData } from './api/accounts';
 
 interface HomeProps {
-  username: string;
+  emailAddress: string;
 }
 
 interface AccountsPanelProps {
@@ -39,8 +39,8 @@ export const getServerSideProps: GetServerSideProps = async ({ req }) => {
     };
 
   try {
-    const { username } = await db.getSessionAndUser(sessionToken);
-    return { props: { username } };
+    const { email_address } = await db.getSessionAndUser(sessionToken);
+    return { props: { emailAddress: email_address } };
   } catch (error) {
     return {
       redirect: {
@@ -254,7 +254,7 @@ export default (props: HomeProps) => {
           <Col xs={8}>
             <Row className="mb-5">
               <Col className="p-0">
-                <h1>Hi, {props.username}! &nbsp;</h1>
+                <div className="fs-5">{props.emailAddress}</div>
               </Col>
               <Col className="text-end">
                 <LinkAccounts setIsLoading={setIsLoading} fetchAccounts={fetchAccounts} />

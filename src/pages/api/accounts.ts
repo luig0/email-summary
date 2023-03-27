@@ -100,8 +100,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
       if (!sessionToken) throw new Error(messages.SESSION_HAS_EXPIRED);
 
-      const { username } = await db.getSessionAndUser(sessionToken);
-      const accessTokenRecords = await db.getAccessTokens(username);
+      const { email_address } = await db.getSessionAndUser(sessionToken);
+      const accessTokenRecords = await db.getAccessTokens(email_address);
 
       const accountData: AccountData[] = [];
 

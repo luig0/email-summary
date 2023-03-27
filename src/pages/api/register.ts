@@ -9,18 +9,18 @@ const SALT_ROUNDS = 12;
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method === 'POST') {
-    const { username, password, inviteCode } = req.body;
+    const { emailAddress, password, inviteCode } = req.body;
 
-    if (!username || !password || !inviteCode) return res.status(400).send(messages.BAD_REQUEST);
+    if (!emailAddress || !password || !inviteCode) return res.status(400).send(messages.BAD_REQUEST);
 
     if (inviteCode !== 'word') return res.status(400).send(messages.BAD_REQUEST);
 
     try {
       const passwordHash = await bcrypt.hash(password, SALT_ROUNDS);
-      await db.createUser(username, passwordHash);
+      await db.createUser(emailAddress, passwordHash);
 
       const expiresAt = new Date(Date.now() + SESSION_EXPIRY_PERIOD);
-      const sessionToken = await db.createSession(username, expiresAt);
+      const sessionToken = await db.createSession(emailAddress, expiresAt);
 
       res.setHeader(
         'set-cookie',
@@ -29,8 +29,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
       return res.status(201).send(messages.CREATED);
     } catch (err: any) {
-      if (err.message === messages.USERNAME_ALREADY_TAKEN) {
-        return res.status(409).send(messages.USERNAME_ALREADY_TAKEN);
+      if (err.message === messages.EMAIL_ALREADY_REGISTERED) {
+        return res.status(409).send(messages.EMAIL_ALREADY_REGISTERED);
       } else {
         console.log('[register.ts] error:', err.message);
         return res.status(500).send(messages.INTERNAL_SERVER_ERROR);

@@ -15,7 +15,7 @@ import * as messages from '@/lib/Messages';
 
 interface AppProps {
   loggedIn: boolean;
-  username?: string;
+  emailAddress?: string;
 }
 
 interface LoginFormProps {
@@ -34,9 +34,9 @@ export const getServerSideProps: GetServerSideProps<AppProps> = async (context) 
 
   if (sessionToken) {
     try {
-      const { username } = await db.getSessionAndUser(sessionToken);
+      const { email_address } = await db.getSessionAndUser(sessionToken);
       props.loggedIn = true;
-      props.username = username;
+      props.emailAddress = email_address;
     } catch (error: any) {
       if (error.message !== messages.SESSION_HAS_EXPIRED) console.log('index.tsx error:', error.message);
       else
@@ -53,13 +53,13 @@ export const getServerSideProps: GetServerSideProps<AppProps> = async (context) 
 const LoginForm = (props: LoginFormProps) => {
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    const username = (document.getElementById('formUsername') as HTMLInputElement)?.value;
+    const emailAddress = (document.getElementById('formEmailAddress') as HTMLInputElement)?.value;
     const password = (document.getElementById('formBasicPassword') as HTMLInputElement)?.value;
 
     const res = await fetch('/api/login', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ username, password }),
+      body: JSON.stringify({ emailAddress, password }),
     });
 
     setLoginStatus(`${res.status} ${res.statusText}`);
@@ -79,8 +79,8 @@ const LoginForm = (props: LoginFormProps) => {
         </a>
       </div>
       <Form onSubmit={handleSubmit} className="mt-3">
-        <Form.Group className="mb-2" controlId="formUsername">
-          <Form.Control type="text" placeholder="Username" />
+        <Form.Group className="mb-2" controlId="formEmailAddress">
+          <Form.Control type="text" placeholder="Email Address" />
         </Form.Group>
         <Form.Group className="mb-2" controlId="formBasicPassword">
           <Form.Control type="password" placeholder="Password" />
@@ -100,18 +100,18 @@ const LoginForm = (props: LoginFormProps) => {
 const RegistrationForm = (props: RegistrationFormProps) => {
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    const username = (document.getElementById('formUsername') as HTMLInputElement)?.value;
+    const emailAddress = (document.getElementById('formEmailAddress') as HTMLInputElement)?.value;
     const password = (document.getElementById('formBasicPassword') as HTMLInputElement)?.value;
     const inviteCode = (document.getElementById('formInviteCode') as HTMLInputElement)?.value;
 
     const res = await fetch('/api/register', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ username, password, inviteCode }),
+      body: JSON.stringify({ emailAddress, password, inviteCode }),
     });
 
     if (res.status === 409) {
-      setLoginStatus('That username is already taken!');
+      setLoginStatus('That email address is already registered!');
     } else {
       setLoginStatus(`${res.status} ${res.statusText}`);
     }
@@ -131,8 +131,8 @@ const RegistrationForm = (props: RegistrationFormProps) => {
         </a>
       </div>
       <Form onSubmit={handleSubmit} className="mt-3">
-        <Form.Group className="mb-2" controlId="formUsername">
-          <Form.Control type="text" placeholder="Username" />
+        <Form.Group className="mb-2" controlId="formEmailAddress">
+          <Form.Control type="text" placeholder="Email Address" />
         </Form.Group>
         <Form.Group className="mb-2" controlId="formBasicPassword">
           <Form.Control type="password" placeholder="Password" />

@@ -21,8 +21,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
       if (!sessionToken) throw new Error(messages.SESSION_HAS_EXPIRED);
 
-      const { username } = await db.getSessionAndUser(sessionToken);
-      await db.createAccessToken(username, accessToken, itemId);
+      const { email_address } = await db.getSessionAndUser(sessionToken);
+      await db.createAccessToken(email_address, accessToken, itemId);
 
       res.status(201).send(messages.CREATED);
     } catch (error) {

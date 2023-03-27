@@ -63,12 +63,12 @@ export interface AccessTokenRecord {
 }
 
 interface DbUser {
-  username: string;
+  email_address: string;
   password_hash: string;
 }
 
 interface GetSessionAndUserResponse {
-  username: string;
+  email_address: string;
   session_token: string;
   expires_at: string;
 }
@@ -102,39 +102,43 @@ function isSessionExpired(expiresAt: string): boolean {
   return Date.now() - new Date(expiresAt).getTime() > 0;
 }
 
-async function hasUser(username: string): Promise<boolean> {
-  const result = await dao.get(`SELECT username FROM users WHERE username=?`, [username]);
+async function hasUser(emailAddress: string): Promise<boolean> {
+  const result = await dao.get(`SELECT email_address FROM users WHERE email_address=?`, [emailAddress]);
   return !!result;
-}
-
-export async function createUser(username: string, passwordHash: string): Promise<void> {
-  if (!(await hasUser(username))) {
-    try {
-      await dao.run(
-        `
-          INSERT INTO users (username, password_hash, date_created, date_modified)
-          VALUES (?, ?, ?, ?);
-        `,
-        [username, passwordHash, new Date().toISOString(), null]
-      );
-    } catch (error: any) {
-      console.log('Adapter.ts, createUser error:', error.message);
-      throw new Error(error.message);
-    }
-  } else {
-    throw new Error(messages.USERNAME_ALREADY_TAKEN);
-  }
-}
-
-export async function getDbUser(username: string): Promise<DbUser> {
-  return await dao.get('SELECT username, password_hash FROM users WHERE username=?;', [username]);
 }
 
 async function hasSessionToken(token: string): Promise<boolean> {
   return !!(await dao.get(`SELECT session_token FROM sessions WHERE session_token=?`, [token]));
 }
 
-export async function createSession(username: string, expiresAt: Date): Promise<string> {
+export async function createUser(emailAddress: string, passwordHash: string): Promise<void> {
+  if (!(await hasUser(emailAddress))) {
+    try {
+      await dao.run(
+        `
+          INSERT INTO users (email_address, password_hash, date_created, date_modified)
+          VALUES (?, ?, ?, ?);
+        `,
+        [emailAddress, passwordHash, new Date().toISOString(), null]
+      );
+    } catch (error: any) {
+      console.log('Adapter.ts, createUser error:', error.message);
+      throw new Error(error.message);
+    }
+  } else {
+    throw new Error(messages.EMAIL_ALREADY_REGISTERED);
+  }
+}
+
+export async function getDbUser(emailAddress: string): Promise<DbUser> {
+  return await dao.get('SELECT email_address, password_hash FROM users WHERE email_address=?;', [emailAddress]);
+}
+
+export async function getUserId(emailAddress: string): Promise<number> {
+  return await dao.get(`SELECT id FROM users WHERE email_address=?`, [emailAddress]);
+}
+
+export async function createSession(emailAddress: string, expiresAt: Date): Promise<string> {
   const expiresAtString = expiresAt.toISOString();
   let sessionToken = crypto.randomBytes(16).toString('base64');
 
@@ -145,12 +149,12 @@ export async function createSession(username: string, expiresAt: Date): Promise<
       `
       INSERT INTO sessions (user_id, session_token, date_created, expires_at)
       VALUES (
-        (SELECT id FROM users WHERE username=?),
+        (SELECT id FROM users WHERE email_address=?),
         ?,
         ?,
         ?);
     `,
-      [username, sessionToken, new Date().toISOString(), expiresAtString]
+      [emailAddress, sessionToken, new Date().toISOString(), expiresAtString]
     );
 
     return sessionToken;
@@ -164,7 +168,7 @@ export async function getSessionAndUser(sessionToken: string): Promise<GetSessio
   try {
     const result = await dao.get(
       `
-        SELECT username, session_token, expires_at 
+        SELECT email_address, session_token, expires_at 
         FROM sessions, users 
         WHERE sessions.user_id = users.id AND session_token=?
       `,
@@ -191,7 +195,7 @@ export async function deleteSession(sessionToken: string): Promise<void> {
   }
 }
 
-export async function createAccessToken(username: string, accessToken: string, itemId: string): Promise<void> {
+export async function createAccessToken(emailAddress: string, accessToken: string, itemId: string): Promise<void> {
   let uuid = uuidv4();
 
   // generate new uuid if this one is already used
@@ -212,14 +216,14 @@ export async function createAccessToken(username: string, accessToken: string, i
       `
         INSERT INTO access_tokens (user_id, uuid, access_token, item_id, date_created)
         VALUES (
-          (SELECT id FROM users WHERE username=?),
+          (SELECT id FROM users WHERE email_address=?),
           ?,
           ?,
           ?,
           ?
         );
     `,
-      [username, uuid, accessToken, itemId, new Date().toISOString()]
+      [emailAddress, uuid, accessToken, itemId, new Date().toISOString()]
     );
   } catch (error: any) {
     console.log('Adapter.ts, createAccessToken error:', error.message);
@@ -227,15 +231,15 @@ export async function createAccessToken(username: string, accessToken: string, i
   }
 }
 
-export async function getAccessTokens(username: string): Promise<AccessTokenRecord[]> {
+export async function getAccessTokens(emailAddress: string): Promise<AccessTokenRecord[]> {
   try {
     return await dao.all(
       `
         SELECT uuid, access_token, item_id, date_created 
         FROM access_tokens 
-        WHERE user_id=(SELECT id FROM users WHERE username=?)
+        WHERE user_id=(SELECT id FROM users WHERE email_address=?)
       `,
-      [username]
+      [emailAddress]
     );
   } catch (error: any) {
     console.log('Adapter.ts error:', error.message);

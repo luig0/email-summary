@@ -6,5 +6,5 @@ export const METHOD_NOT_ALLOWED = 'Method Not Allowed';
 export const OK = 'OK';
 export const UNAUTHORIZED = 'Unauthorized';
 
-export const USERNAME_ALREADY_TAKEN = 'Username Already Taken';
+export const EMAIL_ALREADY_REGISTERED = 'Email Address Already Registered';
 export const SESSION_HAS_EXPIRED = 'Client Session Has Expired';
