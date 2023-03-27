@@ -57,8 +57,8 @@ const getTransactions = async (accessToken: string) => {
   console.log(await fetchResult.json());
 };
 
-const removeAccessToken = async (uuid: string, fetchAccounts: () => void) => {
-  const fetchResult = await fetch(`/api/access_token?uuid=${uuid}`, { method: 'DELETE' });
+const removeAccessToken = async (accessTokenUuid: string, fetchAccounts: () => void) => {
+  const fetchResult = await fetch(`/api/access_token?uuid=${accessTokenUuid}`, { method: 'DELETE' });
   if (fetchResult.ok) await fetchAccounts();
 };
 

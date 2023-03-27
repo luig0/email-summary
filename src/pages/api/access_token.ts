@@ -29,10 +29,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       res.status(500).send(messages.INTERNAL_SERVER_ERROR);
     }
   } else if (req.method === 'DELETE') {
-    const uuid = req.query.uuid as string;
+    const accessTokenUuid = req.query.uuid as string;
 
     try {
-      await db.deleteAccessToken(uuid);
+      await db.deleteAccounts(accessTokenUuid);
+      await db.deleteAccessToken(accessTokenUuid);
       res.status(204).send('');
     } catch (error) {
       res.status(500).send(messages.INTERNAL_SERVER_ERROR);

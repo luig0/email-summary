@@ -355,3 +355,14 @@ export async function getAccounts(accessToken: string): Promise<GetAccountRespon
     throw new Error(error.message);
   }
 }
+
+export async function deleteAccounts(accessTokenUuid: string): Promise<void> {
+  try {
+    await dao.run(`DELETE FROM accounts WHERE access_token_id=(SELECT id FROM access_tokens WHERE uuid=?)`, [
+      accessTokenUuid,
+    ]);
+  } catch (error: any) {
+    console.log('Adapter.ts, deleteAccounts error:', error.message);
+    throw new Error(error.message);
+  }
+}
