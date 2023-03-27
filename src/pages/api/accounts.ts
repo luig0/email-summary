@@ -38,6 +38,8 @@ const getAccounts = async (accessToken: string): Promise<Account[]> => {
     try {
       const response = await plaidClient.accountsGet(request);
       const accounts = response.data.accounts;
+      const institution_id = response.data.item.institution_id || '';
+      await getInstitution(institution_id); // create the db institution first so it can be referenced by db.createAccount
 
       for (const account of accounts) {
         const filteredAccount = {
@@ -46,7 +48,7 @@ const getAccounts = async (accessToken: string): Promise<Account[]> => {
           official_name: account.official_name,
           type: account.type,
           subtype: account.subtype,
-          institution_id: response.data.item.institution_id || '',
+          institution_id,
         };
 
         myAccounts.push(filteredAccount);

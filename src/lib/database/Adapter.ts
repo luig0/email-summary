@@ -306,7 +306,7 @@ export async function createAccount(account: CreateAccountRecordInput) {
     await dao.run(
       `
       INSERT OR IGNORE INTO accounts (
-        uuid, access_token_id, account_id, name, official_name, mask, type, subtype, institution_id
+        uuid, access_token_id, account_id, name, official_name, mask, type, subtype, institution_id, date_created
       )
       VALUES (
         ?,
@@ -317,10 +317,22 @@ export async function createAccount(account: CreateAccountRecordInput) {
         ?,
         ?,
         ?,
-        (SELECT id FROM institutions WHERE institution_id=?)
+        (SELECT id FROM institutions WHERE institution_id=?),
+        ?
       );
     `,
-      [uuid, accessToken, account_id, name, official_name, mask, type, subtype, institution_id]
+      [
+        uuid,
+        accessToken,
+        account_id,
+        name,
+        official_name,
+        mask,
+        type,
+        subtype,
+        institution_id,
+        new Date().toISOString(),
+      ]
     );
   } catch (error: any) {
     console.log('Adapter.ts, createAccount error:', error.message);
@@ -334,7 +346,7 @@ export async function getAccounts(accessToken: string): Promise<GetAccountRespon
       `
         SELECT accounts.name, official_name, mask, type, subtype, institutions.institution_id
         FROM accounts, institutions
-        WHERE accounts.institution_id = institutions.id AND access_token_id=(SELECT id FROM access_tokens WHERE access_token=?)
+        WHERE accounts.institution_id = institutions.id AND access_token_id=(SELECT id FROM access_tokens WHERE access_token=?);
       `,
       [accessToken]
     );

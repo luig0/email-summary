@@ -72,7 +72,8 @@ const db = new sqlite3.Database(DB_PATH, async (err) => {
         mask TEXT,
         type TEXT,
         subtype TEXT,
-        institution_id,
+        institution_id INTEGER,
+        date_created TEXT NOT NULL,
         FOREIGN KEY (access_token_id) REFERENCES access_tokens(id),
         FOREIGN KEY (institution_id) REFERENCES institutions(id)
       );
