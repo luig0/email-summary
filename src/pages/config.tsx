@@ -69,7 +69,7 @@ const updateSubscription = async (
   isWeekly: boolean,
   isMonthly: boolean
 ): Promise<void> => {
-  const fetchResult = await fetch('/api/update-subscription', {
+  const fetchResult = await fetch('/api/subscriptions', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ accessTokenUuid, accountUuid, isDaily, isWeekly, isMonthly }),
