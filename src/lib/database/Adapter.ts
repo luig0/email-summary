@@ -96,6 +96,22 @@ interface GetAccountResponse {
   type: string;
   subtype: string;
   institution_id: string;
+  uuid: string;
+}
+
+interface CreateSubscriptionRequest {
+  emailAddress: string;
+  accessTokenUuid: string;
+  accountUuid: string;
+  isDaily: boolean;
+  isWeekly: boolean;
+  isMonthly: boolean;
+}
+
+export interface GetSubscriptionsResponse {
+  is_daily: number;
+  is_weekly: number;
+  is_monthly: number;
 }
 
 function isSessionExpired(expiresAt: string): boolean {
@@ -348,7 +364,7 @@ export async function getAccounts(accessToken: string): Promise<GetAccountRespon
   try {
     return await dao.all(
       `
-        SELECT accounts.name, official_name, mask, type, subtype, institutions.institution_id
+        SELECT accounts.uuid, accounts.name, official_name, mask, type, subtype, institutions.institution_id
         FROM accounts, institutions
         WHERE accounts.institution_id = institutions.id AND access_token_id=(SELECT id FROM access_tokens WHERE access_token=?);
       `,
@@ -367,6 +383,84 @@ export async function deleteAccounts(accessTokenUuid: string): Promise<void> {
     ]);
   } catch (error: any) {
     console.log('Adapter.ts, deleteAccounts error:', error.message);
+    throw new Error(error.message);
+  }
+}
+
+export async function upsertSubscription({
+  emailAddress,
+  accessTokenUuid,
+  accountUuid,
+  isDaily,
+  isWeekly,
+  isMonthly,
+}: CreateSubscriptionRequest) {
+  try {
+    await dao.run(
+      `
+      INSERT INTO subscriptions (
+        user_id, access_token_id, account_id, is_daily, is_weekly, is_monthly, date_created, date_modified
+      )
+      VALUES (
+        (SELECT id FROM users WHERE email_address=?),
+        (SELECT id FROM access_tokens WHERE uuid=?),
+        (SELECT id FROM accounts WHERE uuid=?),
+        ?,
+        ?,
+        ?,
+        ?,
+        ?
+      ) ON CONFLICT (account_id) DO UPDATE SET
+        is_daily=excluded.is_daily,
+        is_weekly=excluded.is_weekly,
+        is_monthly=excluded.is_monthly,
+        date_modified=excluded.date_created;
+    `,
+      [
+        emailAddress,
+        accessTokenUuid,
+        accountUuid,
+        isDaily ? '1' : '0',
+        isWeekly ? '1' : '0',
+        isMonthly ? '1' : '0',
+        new Date().toISOString(),
+        null,
+      ]
+    );
+  } catch (error: any) {
+    console.log('Adapter.ts, upsertSubscription error:', error.message);
+    throw new Error(error.message);
+  }
+}
+
+export async function getSubscriptionsForAccount(
+  accessToken: string,
+  accountUuid: string
+): Promise<GetSubscriptionsResponse | undefined> {
+  try {
+    return await dao.get(
+      `
+      SELECT is_daily, is_weekly, is_monthly 
+      FROM subscriptions
+      WHERE
+        access_token_id=(SELECT id FROM access_tokens WHERE access_token=?) AND
+        account_id=(SELECT id FROM accounts WHERE uuid=?);
+    `,
+      [accessToken, accountUuid]
+    );
+  } catch (error: any) {
+    console.log('Adapter.ts, getSubscriptionsForAccount error:', error.message);
+    throw new Error(error.message);
+  }
+}
+
+export async function deleteSubscriptions(accessTokenUuid: string) {
+  try {
+    await dao.run(`DELETE FROM subscriptions WHERE access_token_id=(SELECT id FROM access_tokens WHERE uuid=?)`, [
+      accessTokenUuid,
+    ]);
+  } catch (error: any) {
+    console.log('Adapter.ts, deleteSubscriptions error:', error.message);
     throw new Error(error.message);
   }
 }

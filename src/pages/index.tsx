@@ -56,7 +56,7 @@ const LoginForm = (props: LoginFormProps) => {
     const emailAddress = (document.getElementById('formEmailAddress') as HTMLInputElement)?.value;
     const password = (document.getElementById('formBasicPassword') as HTMLInputElement)?.value;
 
-    const res = await fetch('/api/login', {
+    const res = await fetch('/api/auth/login', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ emailAddress, password }),
@@ -104,7 +104,7 @@ const RegistrationForm = (props: RegistrationFormProps) => {
     const password = (document.getElementById('formBasicPassword') as HTMLInputElement)?.value;
     const inviteCode = (document.getElementById('formInviteCode') as HTMLInputElement)?.value;
 
-    const res = await fetch('/api/register', {
+    const res = await fetch('/api/auth/register', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ emailAddress, password, inviteCode }),

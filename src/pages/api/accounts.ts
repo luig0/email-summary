@@ -1,9 +1,11 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import type { AccountsGetRequest, CountryCode, InstitutionsGetByIdRequest } from 'plaid';
 
+import type { GetSubscriptionsResponse } from '@/lib/database/Adapter';
 import * as db from '@/lib/database/Adapter';
 import * as messages from '@/lib/Messages';
 import plaidClient from '@/lib/PlaidApiClient';
+import { access } from 'fs';
 
 export interface AccountData {
   institution_id: string;
@@ -19,6 +21,14 @@ interface Account {
   type: string;
   subtype: string | null;
   institution_id: string;
+  uuid: string;
+  subscriptions: SubscriptionData;
+}
+
+interface SubscriptionData {
+  isDaily: boolean;
+  isWeekly: boolean;
+  isMonthly: boolean;
 }
 
 interface GetInstitutionResponse {
@@ -26,22 +36,41 @@ interface GetInstitutionResponse {
   name: string;
 }
 
+const subscriptionTransform = (dbSub: GetSubscriptionsResponse | undefined): SubscriptionData => {
+  if (dbSub)
+    return {
+      isDaily: dbSub.is_daily === 0 ? false : true,
+      isWeekly: dbSub.is_weekly === 0 ? false : true,
+      isMonthly: dbSub.is_monthly === 0 ? false : true,
+    };
+  return { isDaily: false, isWeekly: false, isMonthly: false };
+};
+
 const getAccounts = async (accessToken: string): Promise<Account[]> => {
-  const dbAccounts = await db.getAccounts(accessToken);
+  let dbAccounts = await db.getAccounts(accessToken);
 
   if (dbAccounts.length > 0) {
-    return dbAccounts;
+    const accounts: Account[] = [];
+
+    for (const dbAccount of dbAccounts) {
+      const account: Account = {
+        ...dbAccount,
+        subscriptions: subscriptionTransform(await db.getSubscriptionsForAccount(accessToken, dbAccount.uuid)),
+      };
+      accounts.push(account);
+    }
+
+    return accounts;
   } else {
     const request: AccountsGetRequest = { access_token: accessToken };
-    const myAccounts: Account[] = [];
 
     try {
       const response = await plaidClient.accountsGet(request);
-      const accounts = response.data.accounts;
+      const plaidAccounts = response.data.accounts;
       const institution_id = response.data.item.institution_id || '';
       await getInstitution(institution_id); // create the db institution first so it can be referenced by db.createAccount
 
-      for (const account of accounts) {
+      for (const account of plaidAccounts) {
         const filteredAccount = {
           mask: account.mask,
           name: account.name,
@@ -51,16 +80,27 @@ const getAccounts = async (accessToken: string): Promise<Account[]> => {
           institution_id,
         };
 
-        myAccounts.push(filteredAccount);
-
         await db.createAccount({ ...filteredAccount, accessToken, account_id: account.account_id });
       }
+
+      dbAccounts = await db.getAccounts(accessToken);
+
+      const accounts: Account[] = [];
+
+      for (const dbAccount of dbAccounts) {
+        const account: Account = {
+          ...dbAccount,
+          subscriptions: subscriptionTransform(await db.getSubscriptionsForAccount(accessToken, dbAccount.uuid)),
+        };
+        accounts.push(account);
+      }
+
+      return accounts;
     } catch (error: any) {
       // handle error
       console.log('plaid GET accounts error:', error.message);
+      return [];
     }
-
-    return myAccounts;
   }
 };
 

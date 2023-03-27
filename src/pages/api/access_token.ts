@@ -32,6 +32,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const accessTokenUuid = req.query.uuid as string;
 
     try {
+      await db.deleteSubscriptions(accessTokenUuid);
       await db.deleteAccounts(accessTokenUuid);
       await db.deleteAccessToken(accessTokenUuid);
       res.status(204).send('');

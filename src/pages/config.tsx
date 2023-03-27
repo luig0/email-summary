@@ -62,6 +62,20 @@ const removeAccessToken = async (accessTokenUuid: string, fetchAccounts: () => v
   if (fetchResult.ok) await fetchAccounts();
 };
 
+const updateSubscription = async (
+  accessTokenUuid: string,
+  accountUuid: string,
+  isDaily: boolean,
+  isWeekly: boolean,
+  isMonthly: boolean
+): Promise<void> => {
+  const fetchResult = await fetch('/api/subscriptions', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ accessTokenUuid, accountUuid, isDaily, isWeekly, isMonthly }),
+  });
+};
+
 const sendMail = async () => {
   const fetchResult = await fetch('/api/sendmail', {
     method: 'POST',
@@ -79,9 +93,21 @@ const sendMail = async () => {
 const AccountsPanel = (props: AccountsPanelProps) => {
   useEffect(() => {
     setAccountData(props.data);
-    setDaily(props.data.map((ins: AccountData) => ins.accounts.map((acc) => false)));
-    setWeekly(props.data.map((ins: AccountData) => ins.accounts.map((acc) => false)));
-    setMonthly(props.data.map((ins: AccountData) => ins.accounts.map((acc) => false)));
+    setDaily(
+      props.data.map((ins: AccountData, insIndex) =>
+        ins.accounts.map((acc, accIndex) => props.data[insIndex].accounts[accIndex].subscriptions.isDaily)
+      )
+    );
+    setWeekly(
+      props.data.map((ins: AccountData, insIndex) =>
+        ins.accounts.map((acc, accIndex) => props.data[insIndex].accounts[accIndex].subscriptions.isWeekly)
+      )
+    );
+    setMonthly(
+      props.data.map((ins: AccountData, insIndex) =>
+        ins.accounts.map((acc, accIndex) => props.data[insIndex].accounts[accIndex].subscriptions.isMonthly)
+      )
+    );
   }, [props.data]);
 
   const { isLoading, fetchAccounts } = props;
@@ -152,9 +178,18 @@ const AccountsPanel = (props: AccountsPanelProps) => {
                                 variant="outline-dark"
                                 checked={daily![insIndex][accIndex]}
                                 value="d"
-                                onChange={(e) => {
+                                onChange={async (e) => {
                                   const newDaily = JSON.parse(JSON.stringify(daily));
                                   newDaily![insIndex][accIndex] = e.currentTarget.checked;
+
+                                  await updateSubscription(
+                                    props.data[insIndex].access_token_uuid,
+                                    props.data[insIndex].accounts[accIndex].uuid,
+                                    e.currentTarget.checked,
+                                    weekly![insIndex][accIndex],
+                                    monthly![insIndex][accIndex]
+                                  );
+
                                   setDaily(newDaily);
                                 }}
                               >
@@ -166,9 +201,18 @@ const AccountsPanel = (props: AccountsPanelProps) => {
                                 variant="outline-dark"
                                 checked={weekly![insIndex][accIndex]}
                                 value="w"
-                                onChange={(e) => {
+                                onChange={async (e) => {
                                   const newWeekly = JSON.parse(JSON.stringify(weekly));
                                   newWeekly![insIndex][accIndex] = e.currentTarget.checked;
+
+                                  await updateSubscription(
+                                    props.data[insIndex].access_token_uuid,
+                                    props.data[insIndex].accounts[accIndex].uuid,
+                                    daily![insIndex][accIndex],
+                                    e.currentTarget.checked,
+                                    monthly![insIndex][accIndex]
+                                  );
+
                                   setWeekly(newWeekly);
                                 }}
                               >
@@ -180,9 +224,18 @@ const AccountsPanel = (props: AccountsPanelProps) => {
                                 variant="outline-dark"
                                 checked={monthly![insIndex][accIndex]}
                                 value="m"
-                                onChange={(e) => {
+                                onChange={async (e) => {
                                   const newMonthly = JSON.parse(JSON.stringify(monthly));
                                   newMonthly![insIndex][accIndex] = e.currentTarget.checked;
+
+                                  await updateSubscription(
+                                    props.data[insIndex].access_token_uuid,
+                                    props.data[insIndex].accounts[accIndex].uuid,
+                                    daily![insIndex][accIndex],
+                                    weekly![insIndex][accIndex],
+                                    e.currentTarget.checked
+                                  );
+
                                   setMonthly(newMonthly);
                                 }}
                               >
@@ -193,7 +246,7 @@ const AccountsPanel = (props: AccountsPanelProps) => {
                             <Button
                               variant="outline-dark"
                               className="m-1"
-                              onClick={() => {
+                              onClick={async () => {
                                 const newState = !daily![insIndex][accIndex];
 
                                 const newDaily = JSON.parse(JSON.stringify(daily));
@@ -207,6 +260,14 @@ const AccountsPanel = (props: AccountsPanelProps) => {
                                 const newMonthly = JSON.parse(JSON.stringify(monthly));
                                 newMonthly![insIndex][accIndex] = newState;
                                 setMonthly(newMonthly);
+
+                                await updateSubscription(
+                                  props.data[insIndex].access_token_uuid,
+                                  props.data[insIndex].accounts[accIndex].uuid,
+                                  newState,
+                                  newState,
+                                  newState
+                                );
                               }}
                               size="sm"
                             >

@@ -80,6 +80,25 @@ const db = new sqlite3.Database(DB_PATH, async (err) => {
     `;
 
     await db.run(createAccountsTable);
+
+    const createSubscriptionsTable = `
+      CREATE TABLE IF NOT EXISTS subscriptions (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        user_id INTEGER NOT NULL,
+        access_token_id INTEGER NOT NULL,
+        account_id INTEGER UNIQUE NOT NULL,
+        is_daily INTEGER NOT NULL,
+        is_weekly INTEGER NOT NULL,
+        is_monthly INTEGER NOT NULL,
+        date_created TEXT NOT NULL,
+        date_modified TEXT,
+        FOREIGN KEY (user_id) REFERENCES users(id),
+        FOREIGN KEY (access_token_id) REFERENCES access_tokens(id),
+        FOREIGN KEY (account_id) REFERENCES accounts(id)
+      );
+    `;
+
+    await db.run(createSubscriptionsTable);
   }
 });
 
