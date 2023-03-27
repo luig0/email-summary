@@ -60,6 +60,25 @@ const db = new sqlite3.Database(DB_PATH, async (err) => {
     `;
 
     await db.run(createInstitutionsTable);
+
+    const createAccountsTable = `
+      CREATE TABLE IF NOT EXISTS accounts (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        uuid TEXT UNIQUE NOT NULL,
+        access_token_id INTEGER NOT NULL,
+        account_id TEXT UNIQUE NOT NULL,
+        name TEXT,
+        official_name TEXT,
+        mask TEXT,
+        type TEXT,
+        subtype TEXT,
+        institution_id,
+        FOREIGN KEY (access_token_id) REFERENCES access_tokens(id),
+        FOREIGN KEY (institution_id) REFERENCES institutions(id)
+      );
+    `;
+
+    await db.run(createAccountsTable);
   }
 });
 

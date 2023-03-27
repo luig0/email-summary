@@ -78,6 +78,26 @@ interface InstitutionRecord {
   name: string;
 }
 
+interface CreateAccountRecordInput {
+  accessToken: string;
+  account_id: string;
+  name: string | null;
+  official_name: string | null;
+  mask: string | null;
+  type: string | null;
+  subtype: string | null;
+  institution_id: string;
+}
+
+interface GetAccountResponse {
+  name: string;
+  official_name: string;
+  mask: string;
+  type: string;
+  subtype: string;
+  institution_id: string;
+}
+
 function isSessionExpired(expiresAt: string): boolean {
   return Date.now() - new Date(expiresAt).getTime() > 0;
 }
@@ -246,6 +266,7 @@ export async function createInstitution(institutionId: string, institutionName: 
       [institutionId, institutionName, new Date().toISOString()]
     );
   } catch (error: any) {
+    console.log('Adapter.ts, createInstitution error:', error.message);
     throw new Error(error.message);
   }
 }
@@ -259,6 +280,66 @@ export async function getInstitution(institutionId: string): Promise<Institution
       [institutionId]
     );
   } catch (error: any) {
+    console.log('Adapter.ts, getInstitution error:', error.message);
+    throw new Error(error.message);
+  }
+}
+
+export async function createAccount(account: CreateAccountRecordInput) {
+  let uuid = uuidv4();
+  // generate new uuid if this one is already used
+  try {
+    let result = await dao.get(`SELECT * FROM accounts WHERE uuid=?`, [uuid]);
+
+    while (result) {
+      uuid = uuidv4();
+      result = await dao.get(`SELECT * FROM accounts WHERE uuid=?`, [uuid]);
+    }
+  } catch (error: any) {
+    console.log('Adapter.ts, createAccount error:', error.message);
+    throw new Error(error.message);
+  }
+
+  const { accessToken, account_id, name, official_name, mask, type, subtype, institution_id } = account;
+
+  try {
+    await dao.run(
+      `
+      INSERT OR IGNORE INTO accounts (
+        uuid, access_token_id, account_id, name, official_name, mask, type, subtype, institution_id
+      )
+      VALUES (
+        ?,
+        (SELECT id FROM access_tokens WHERE access_token=?),
+        ?,
+        ?,
+        ?,
+        ?,
+        ?,
+        ?,
+        (SELECT id FROM institutions WHERE institution_id=?)
+      );
+    `,
+      [uuid, accessToken, account_id, name, official_name, mask, type, subtype, institution_id]
+    );
+  } catch (error: any) {
+    console.log('Adapter.ts, createAccount error:', error.message);
+    throw new Error(error.message);
+  }
+}
+
+export async function getAccounts(accessToken: string): Promise<GetAccountResponse[]> {
+  try {
+    return await dao.all(
+      `
+        SELECT accounts.name, official_name, mask, type, subtype, institutions.institution_id
+        FROM accounts, institutions
+        WHERE accounts.institution_id = institutions.id AND access_token_id=(SELECT id FROM access_tokens WHERE access_token=?)
+      `,
+      [accessToken]
+    );
+  } catch (error: any) {
+    console.log('Adapter.ts, getAccounts error:', error.message);
     throw new Error(error.message);
   }
 }

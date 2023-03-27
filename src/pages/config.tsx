@@ -14,7 +14,7 @@ import ButtonGroup from 'react-bootstrap/ButtonGroup';
 
 import * as db from '@/lib/database/Adapter';
 import LinkAccounts from '@/components/LinkAccounts';
-import type { Institution } from './api/accounts';
+import type { AccountData } from './api/accounts';
 
 interface HomeProps {
   username: string;
@@ -84,9 +84,9 @@ const AccountsPanel = (props: AccountsPanelProps) => {
       const institutions = await fetchResult.json();
       setAccountData(institutions);
 
-      setDaily(institutions.map((ins: Institution) => ins.accounts.map((acc) => false)));
-      setWeekly(institutions.map((ins: Institution) => ins.accounts.map((acc) => false)));
-      setMonthly(institutions.map((ins: Institution) => ins.accounts.map((acc) => false)));
+      setDaily(institutions.map((ins: AccountData) => ins.accounts.map((acc) => false)));
+      setWeekly(institutions.map((ins: AccountData) => ins.accounts.map((acc) => false)));
+      setMonthly(institutions.map((ins: AccountData) => ins.accounts.map((acc) => false)));
 
       setIsLoading(false);
     })();
@@ -126,7 +126,7 @@ const AccountsPanel = (props: AccountsPanelProps) => {
 
       {accountData.length > 0 && (
         <>
-          {accountData.map((ins: Institution, insIndex) => {
+          {accountData.map((ins: AccountData, insIndex) => {
             const accounts = ins.accounts;
             return (
               <div key={`ins-${insIndex}`} className="p-0">
