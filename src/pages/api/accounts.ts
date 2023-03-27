@@ -5,23 +5,93 @@ import * as db from '@/lib/database/Adapter';
 import * as messages from '@/lib/Messages';
 import plaidClient from '@/lib/PlaidApiClient';
 
-export interface Institution {
+export interface AccountData {
   institution_id: string;
   name: string;
   accounts: Account[];
+  access_token_uuid: string;
 }
 
 interface Account {
-  account_id: string;
   mask: string | null;
   name: string;
   official_name: string | null;
   type: string;
   subtype: string | null;
-  institution_id: string | null;
+  institution_id: string;
 }
 
-const devMode = false;
+interface GetInstitutionResponse {
+  institution_id: string;
+  name: string;
+}
+
+const getAccounts = async (accessToken: string): Promise<Account[]> => {
+  const dbAccounts = await db.getAccounts(accessToken);
+
+  if (dbAccounts.length > 0) {
+    return dbAccounts;
+  } else {
+    const request: AccountsGetRequest = { access_token: accessToken };
+    const myAccounts: Account[] = [];
+
+    try {
+      const response = await plaidClient.accountsGet(request);
+      const accounts = response.data.accounts;
+      const institution_id = response.data.item.institution_id || '';
+      await getInstitution(institution_id); // create the db institution first so it can be referenced by db.createAccount
+
+      for (const account of accounts) {
+        const filteredAccount = {
+          mask: account.mask,
+          name: account.name,
+          official_name: account.official_name,
+          type: account.type,
+          subtype: account.subtype,
+          institution_id,
+        };
+
+        myAccounts.push(filteredAccount);
+
+        await db.createAccount({ ...filteredAccount, accessToken, account_id: account.account_id });
+      }
+    } catch (error: any) {
+      // handle error
+      console.log('plaid GET accounts error:', error.message);
+    }
+
+    return myAccounts;
+  }
+};
+
+const getInstitution = async (institutionId: string | null | undefined): Promise<GetInstitutionResponse> => {
+  if (!institutionId) throw new Error('no institution_id provided to getInstitution');
+
+  const dbInstitution = await db.getInstitution(institutionId);
+  let ins: GetInstitutionResponse = { institution_id: institutionId, name: '' };
+
+  if (dbInstitution) {
+    ins.name = dbInstitution.name;
+  } else {
+    const insRequest: InstitutionsGetByIdRequest = {
+      institution_id: institutionId,
+      country_codes: ['US'] as CountryCode[],
+    };
+    const insResponse = await plaidClient.institutionsGetById(insRequest);
+    const institution = insResponse.data.institution;
+    const institution_name = institution.name || '';
+
+    ins.name = institution_name;
+
+    try {
+      await db.createInstitution(institutionId, institution_name);
+    } catch (error: any) {
+      console.log('plaid GET institutions, createInstitution error:', error.message);
+    }
+  }
+
+  return ins;
+};
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method === 'GET') {
@@ -33,144 +103,27 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       const { username } = await db.getSessionAndUser(sessionToken);
       const accessTokenRecords = await db.getAccessTokens(username);
 
-      if (!devMode) {
-        const institutions: Institution[] = [];
+      const accountData: AccountData[] = [];
 
-        for (const accessTokenRecord of accessTokenRecords) {
-          let institution_id = '';
-          let institution_name = '';
-          const myAccounts: Account[] = [];
-          const { access_token } = accessTokenRecord;
+      for (const accessTokenRecord of accessTokenRecords) {
+        let institution_id = '';
+        const { access_token } = accessTokenRecord;
 
-          const request: AccountsGetRequest = { access_token };
-          try {
-            const response = await plaidClient.accountsGet(request);
-            const accounts = response.data.accounts;
+        const accounts = await getAccounts(access_token);
 
-            for (const account of accounts) {
-              let dbInstitution;
+        if (accounts.length > 0) institution_id = accounts[0].institution_id;
 
-              if (!institution_id) {
-                institution_id = response.data.item.institution_id || '';
+        const institution = await getInstitution(institution_id);
 
-                try {
-                  if (!institution_name) {
-                    dbInstitution = await db.getInstitution(institution_id);
-                  }
-
-                  if (dbInstitution) {
-                    institution_name = dbInstitution.name;
-                  } else {
-                    const insRequest: InstitutionsGetByIdRequest = {
-                      institution_id,
-                      country_codes: ['US'] as CountryCode[],
-                    };
-                    const insResponse = await plaidClient.institutionsGetById(insRequest);
-                    const institution = insResponse.data.institution;
-                    institution_name = institution.name || '';
-
-                    try {
-                      await db.createInstitution(institution_id, institution_name);
-                    } catch (error: any) {
-                      console.log('plaid GET institutions, createInstitution error:', error.message);
-                    }
-                  }
-                } catch (error: any) {
-                  // Handle error
-                  console.log('plaid GET institutions error:', error.message);
-                  institution_name = '';
-                }
-              }
-
-              myAccounts.push({
-                account_id: account.account_id,
-                mask: account.mask,
-                name: account.name,
-                official_name: account.official_name,
-                type: account.type,
-                subtype: account.subtype,
-                institution_id: account.institution_id,
-              });
-            }
-
-            institutions.push({ institution_id, name: institution_name || '', accounts: myAccounts });
-          } catch (error: any) {
-            // handle error
-            console.log('plaid GET accounts error:', error.message);
-          }
-        }
-
-        res.json(institutions);
-      } else {
-        res.json([
-          {
-            institution_id: 'ins_56',
-            name: 'Chase',
-            accounts: [
-              {
-                account_id: 'yjGV9qVdpjSWBRWQB3zQizlNgrZoWWuKrNVw4',
-                mask: '0000',
-                name: 'Plaid Checking',
-                official_name: 'Plaid Gold Standard 0% Interest Checking',
-                type: 'depository',
-                subtype: 'checking',
-              },
-              {
-                account_id: '9xq8Wr8kZxIRA5RMAo1MTylJGNjqddiqlPdgq',
-                mask: '1111',
-                name: 'Plaid Saving',
-                official_name: 'Plaid Silver Standard 0.1% Interest Saving',
-                type: 'depository',
-                subtype: 'savings',
-              },
-            ],
-          },
-          {
-            institution_id: 'ins_127991',
-            name: 'Wells Fargo',
-            accounts: [
-              {
-                account_id: 'aaD19rwmB8ua9Pz95pneHd379WmpDzckQqEQj',
-                mask: '0000',
-                name: 'Plaid Checking',
-                official_name: 'Plaid Gold Standard 0% Interest Checking',
-                type: 'depository',
-                subtype: 'checking',
-              },
-              {
-                account_id: '4QmxGkXJazTJweNw8dLxtE4QPzGAveHlAevAj',
-                mask: '1111',
-                name: 'Plaid Saving',
-                official_name: 'Plaid Silver Standard 0.1% Interest Saving',
-                type: 'depository',
-                subtype: 'savings',
-              },
-            ],
-          },
-          {
-            institution_id: 'ins_127989',
-            name: 'Bank of America',
-            accounts: [
-              {
-                account_id: 'nEW99o7ZBAsLx1ZaDVmBSPMp53kv16cKQeJg5',
-                mask: '0000',
-                name: 'Plaid Checking',
-                official_name: 'Plaid Gold Standard 0% Interest Checking',
-                type: 'depository',
-                subtype: 'checking',
-              },
-              {
-                account_id: 'bE7oo4KB8ysdaopNe6vMUlgzaQd6R5uN7xBrx',
-                mask: '1111',
-                name: 'Plaid Saving',
-                official_name: 'Plaid Silver Standard 0.1% Interest Saving',
-                type: 'depository',
-                subtype: 'savings',
-              },
-            ],
-          },
-        ]);
+        accountData.push({
+          institution_id: institution.institution_id,
+          name: institution.name,
+          accounts,
+          access_token_uuid: accessTokenRecord.uuid,
+        });
       }
+
+      res.json(accountData);
     } catch (error: any) {
       if (error.message === messages.SESSION_HAS_EXPIRED) res.status(401).send(messages.UNAUTHORIZED);
       else {

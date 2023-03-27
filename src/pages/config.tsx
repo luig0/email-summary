@@ -14,10 +14,16 @@ import ButtonGroup from 'react-bootstrap/ButtonGroup';
 
 import * as db from '@/lib/database/Adapter';
 import LinkAccounts from '@/components/LinkAccounts';
-import type { Institution } from './api/accounts';
+import type { AccountData } from './api/accounts';
 
 interface HomeProps {
   username: string;
+}
+
+interface AccountsPanelProps {
+  isLoading: boolean;
+  data: AccountData[];
+  fetchAccounts: () => void;
 }
 
 export const getServerSideProps: GetServerSideProps = async ({ req }) => {
@@ -51,6 +57,11 @@ const getTransactions = async (accessToken: string) => {
   console.log(await fetchResult.json());
 };
 
+const removeAccessToken = async (uuid: string, fetchAccounts: () => void) => {
+  const fetchResult = await fetch(`/api/access_token?uuid=${uuid}`, { method: 'DELETE' });
+  if (fetchResult.ok) await fetchAccounts();
+};
+
 const sendMail = async () => {
   const fetchResult = await fetch('/api/sendmail', {
     method: 'POST',
@@ -65,25 +76,16 @@ const sendMail = async () => {
   });
 };
 
-const AccountsPanel = () => {
+const AccountsPanel = (props: AccountsPanelProps) => {
   useEffect(() => {
-    (async () => {
-      setIsLoading(true);
+    setAccountData(props.data);
+    setDaily(props.data.map((ins: AccountData) => ins.accounts.map((acc) => false)));
+    setWeekly(props.data.map((ins: AccountData) => ins.accounts.map((acc) => false)));
+    setMonthly(props.data.map((ins: AccountData) => ins.accounts.map((acc) => false)));
+  }, [props.data]);
 
-      const fetchResult = await fetch('/api/accounts');
-      const institutions = await fetchResult.json();
-      setAccountData(institutions);
-
-      setDaily(institutions.map((ins: Institution) => ins.accounts.map((acc) => false)));
-      setWeekly(institutions.map((ins: Institution) => ins.accounts.map((acc) => false)));
-      setMonthly(institutions.map((ins: Institution) => ins.accounts.map((acc) => false)));
-
-      setIsLoading(false);
-    })();
-  }, []);
-
-  const [isLoading, setIsLoading] = useState(false);
-  const [accountData, setAccountData] = useState([]);
+  const { isLoading, fetchAccounts } = props;
+  const [accountData, setAccountData] = useState(props.data);
 
   const [daily, setDaily] = useState<boolean[][]>();
   const [weekly, setWeekly] = useState<boolean[][]>();
@@ -95,7 +97,7 @@ const AccountsPanel = () => {
         <tbody>
           <tr>
             <td>
-              <span className="p-0 fs-1">Accounts</span>
+              <span className="p-2 fs-2">Accounts</span>
               {isLoading && (
                 <span className={styles['loading-text']} style={{ fontSize: '16px' }}>
                   &nbsp;&nbsp;Loading&nbsp;
@@ -116,15 +118,22 @@ const AccountsPanel = () => {
 
       {accountData.length > 0 && (
         <>
-          {accountData.map((ins: Institution, insIndex) => {
+          {accountData.map((ins: AccountData, insIndex) => {
             const accounts = ins.accounts;
             return (
               <div key={`ins-${insIndex}`} className="p-0">
                 <Table bordered>
                   <thead>
                     <tr>
-                      <td colSpan={2} className="ps-3 fs-3">
-                        {ins.name}
+                      <td className="ps-3 fs-4 border-end-0">{ins.name}</td>
+                      <td className="align-middle text-end border-start-0">
+                        <Button
+                          variant="danger"
+                          size="sm"
+                          onClick={removeAccessToken.bind(null, ins.access_token_uuid, fetchAccounts)}
+                        >
+                          Remove
+                        </Button>
                       </td>
                     </tr>
                   </thead>
@@ -132,13 +141,15 @@ const AccountsPanel = () => {
                     {accounts.map((acc, accIndex) => {
                       return (
                         <tr key={`acc-${insIndex}-${accIndex}`}>
-                          <td className="ps-5 align-middle border-end-0">{acc.official_name}</td>
+                          <td className="ps-5 align-middle border-end-0">
+                            {acc.official_name} ({acc.mask})
+                          </td>
                           <td className="text-center border-start-0">
                             <ButtonGroup size="sm">
                               <ToggleButton
                                 id={`toggle-daily-${insIndex}-${accIndex}`}
                                 type="checkbox"
-                                variant="outline-primary"
+                                variant="outline-dark"
                                 checked={daily![insIndex][accIndex]}
                                 value="d"
                                 onChange={(e) => {
@@ -152,7 +163,7 @@ const AccountsPanel = () => {
                               <ToggleButton
                                 id={`toggle-weekly-${insIndex}-${accIndex}`}
                                 type="checkbox"
-                                variant="outline-primary"
+                                variant="outline-dark"
                                 checked={weekly![insIndex][accIndex]}
                                 value="w"
                                 onChange={(e) => {
@@ -166,7 +177,7 @@ const AccountsPanel = () => {
                               <ToggleButton
                                 id={`toggle-monthly-${insIndex}-${accIndex}`}
                                 type="checkbox"
-                                variant="outline-primary"
+                                variant="outline-dark"
                                 checked={monthly![insIndex][accIndex]}
                                 value="m"
                                 onChange={(e) => {
@@ -217,7 +228,23 @@ const AccountsPanel = () => {
 };
 
 export default (props: HomeProps) => {
+  const fetchAccounts = async () => {
+    setIsLoading(true);
+
+    const fetchResult = await fetch('/api/accounts');
+    const data = await fetchResult.json();
+    setAccountData(data);
+
+    setIsLoading(false);
+  };
+
+  useEffect(() => {
+    fetchAccounts();
+  }, []);
+
   const router = useRouter();
+  const [isLoading, setIsLoading] = useState(false);
+  const [accountData, setAccountData] = useState<AccountData[]>([]);
 
   return (
     <main className={styles.main}>
@@ -230,7 +257,7 @@ export default (props: HomeProps) => {
                 <h1>Hi, {props.username}! &nbsp;</h1>
               </Col>
               <Col className="text-end">
-                <LinkAccounts />
+                <LinkAccounts setIsLoading={setIsLoading} fetchAccounts={fetchAccounts} />
                 <Button
                   variant="outline-danger"
                   className="ms-1"
@@ -243,7 +270,7 @@ export default (props: HomeProps) => {
               </Col>
             </Row>
             <Row>
-              <AccountsPanel />
+              <AccountsPanel isLoading={isLoading} data={accountData} fetchAccounts={fetchAccounts} />
             </Row>
           </Col>
           <Col></Col>

@@ -102,7 +102,7 @@ const RegistrationForm = (props: RegistrationFormProps) => {
     event.preventDefault();
     const username = (document.getElementById('formUsername') as HTMLInputElement)?.value;
     const password = (document.getElementById('formBasicPassword') as HTMLInputElement)?.value;
-    const inviteCode = (document.getElementById('invite-code') as HTMLInputElement)?.value;
+    const inviteCode = (document.getElementById('formInviteCode') as HTMLInputElement)?.value;
 
     const res = await fetch('/api/register', {
       method: 'POST',

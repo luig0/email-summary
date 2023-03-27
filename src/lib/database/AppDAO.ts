@@ -40,10 +40,10 @@ const db = new sqlite3.Database(DB_PATH, async (err) => {
       CREATE TABLE IF NOT EXISTS access_tokens (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         user_id INTEGER NOT NULL,
+        uuid TEXT UNIQUE NOT NULL,
         access_token TEXT NOT NULL,
         item_id TEXT NOT NULL,
         date_created TEXT NOT NULL,
-        date_modified TEXT,
         FOREIGN KEY (user_id) REFERENCES users(id)
       );
     `;
@@ -55,12 +55,31 @@ const db = new sqlite3.Database(DB_PATH, async (err) => {
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         institution_id TEXT UNIQUE NOT NULL,
         name TEXT,
-        date_created TEXT NOT NULL,
-        date_modified TEXT
+        date_created TEXT NOT NULL
       );
     `;
 
     await db.run(createInstitutionsTable);
+
+    const createAccountsTable = `
+      CREATE TABLE IF NOT EXISTS accounts (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        uuid TEXT UNIQUE NOT NULL,
+        access_token_id INTEGER NOT NULL,
+        account_id TEXT UNIQUE NOT NULL,
+        name TEXT,
+        official_name TEXT,
+        mask TEXT,
+        type TEXT,
+        subtype TEXT,
+        institution_id INTEGER,
+        date_created TEXT NOT NULL,
+        FOREIGN KEY (access_token_id) REFERENCES access_tokens(id),
+        FOREIGN KEY (institution_id) REFERENCES institutions(id)
+      );
+    `;
+
+    await db.run(createAccountsTable);
   }
 });
 
