@@ -19,6 +19,7 @@ interface Account {
   type: string;
   subtype: string | null;
   institution_id: string;
+  uuid: string;
 }
 
 interface GetInstitutionResponse {
@@ -33,7 +34,6 @@ const getAccounts = async (accessToken: string): Promise<Account[]> => {
     return dbAccounts;
   } else {
     const request: AccountsGetRequest = { access_token: accessToken };
-    const myAccounts: Account[] = [];
 
     try {
       const response = await plaidClient.accountsGet(request);
@@ -51,16 +51,15 @@ const getAccounts = async (accessToken: string): Promise<Account[]> => {
           institution_id,
         };
 
-        myAccounts.push(filteredAccount);
-
         await db.createAccount({ ...filteredAccount, accessToken, account_id: account.account_id });
       }
+
+      return await db.getAccounts(accessToken);
     } catch (error: any) {
       // handle error
       console.log('plaid GET accounts error:', error.message);
+      return [];
     }
-
-    return myAccounts;
   }
 };
 
