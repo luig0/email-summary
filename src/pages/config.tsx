@@ -22,7 +22,8 @@ interface HomeProps {
 
 interface AccountsPanelProps {
   isLoading: boolean;
-  setIsLoading: (arg: boolean) => void;
+  data: AccountData[];
+  fetchAccounts: () => void;
 }
 
 export const getServerSideProps: GetServerSideProps = async ({ req }) => {
@@ -76,26 +77,15 @@ const sendMail = async () => {
 };
 
 const AccountsPanel = (props: AccountsPanelProps) => {
-  const fetchAccounts = async () => {
-    setIsLoading(true);
-
-    const fetchResult = await fetch('/api/accounts');
-    const institutions = await fetchResult.json();
-    setAccountData(institutions);
-
-    setDaily(institutions.map((ins: AccountData) => ins.accounts.map((acc) => false)));
-    setWeekly(institutions.map((ins: AccountData) => ins.accounts.map((acc) => false)));
-    setMonthly(institutions.map((ins: AccountData) => ins.accounts.map((acc) => false)));
-
-    setIsLoading(false);
-  };
-
   useEffect(() => {
-    fetchAccounts();
-  }, []);
+    setAccountData(props.data);
+    setDaily(props.data.map((ins: AccountData) => ins.accounts.map((acc) => false)));
+    setWeekly(props.data.map((ins: AccountData) => ins.accounts.map((acc) => false)));
+    setMonthly(props.data.map((ins: AccountData) => ins.accounts.map((acc) => false)));
+  }, [props.data]);
 
-  const { isLoading, setIsLoading } = props;
-  const [accountData, setAccountData] = useState([]);
+  const { isLoading, fetchAccounts } = props;
+  const [accountData, setAccountData] = useState(props.data);
 
   const [daily, setDaily] = useState<boolean[][]>();
   const [weekly, setWeekly] = useState<boolean[][]>();
@@ -238,8 +228,23 @@ const AccountsPanel = (props: AccountsPanelProps) => {
 };
 
 export default (props: HomeProps) => {
+  const fetchAccounts = async () => {
+    setIsLoading(true);
+
+    const fetchResult = await fetch('/api/accounts');
+    const data = await fetchResult.json();
+    setAccountData(data);
+
+    setIsLoading(false);
+  };
+
+  useEffect(() => {
+    fetchAccounts();
+  }, []);
+
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
+  const [accountData, setAccountData] = useState<AccountData[]>([]);
 
   return (
     <main className={styles.main}>
@@ -252,7 +257,7 @@ export default (props: HomeProps) => {
                 <h1>Hi, {props.username}! &nbsp;</h1>
               </Col>
               <Col className="text-end">
-                <LinkAccounts setIsLoading={setIsLoading} />
+                <LinkAccounts setIsLoading={setIsLoading} fetchAccounts={fetchAccounts} />
                 <Button
                   variant="outline-danger"
                   className="ms-1"
@@ -265,7 +270,7 @@ export default (props: HomeProps) => {
               </Col>
             </Row>
             <Row>
-              <AccountsPanel isLoading={isLoading} setIsLoading={setIsLoading} />
+              <AccountsPanel isLoading={isLoading} data={accountData} fetchAccounts={fetchAccounts} />
             </Row>
           </Col>
           <Col></Col>

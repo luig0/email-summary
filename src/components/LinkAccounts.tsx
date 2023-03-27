@@ -6,6 +6,7 @@ import Spinner from 'react-bootstrap/Spinner';
 
 interface LinkAccountsProps {
   setIsLoading: (arg: boolean) => void;
+  fetchAccounts: () => void;
 }
 
 // LINK COMPONENT
@@ -14,6 +15,7 @@ interface LinkAccountsProps {
 interface LinkProps {
   linkToken: string;
   setIsLoading: (arg: boolean) => void;
+  fetchAccounts: () => void;
 }
 const Link: React.FC<LinkProps> = (props: LinkProps) => {
   const onSuccess = useCallback(async (public_token: string, metadata: PlaidLinkOnSuccessMetadata) => {
@@ -26,9 +28,9 @@ const Link: React.FC<LinkProps> = (props: LinkProps) => {
       body: JSON.stringify({ public_token }),
     });
     // Handle response ...
-    console.log('onSuccess, response data:', response.statusText);
+    console.log('Link onSuccess, response data:', response.statusText);
     setIsLoading(false);
-    location.reload();
+    props.fetchAccounts();
   }, []);
 
   const onExit = () => {
@@ -81,7 +83,7 @@ export default (props: LinkAccountsProps) => {
   }, []);
 
   return linkToken !== null ? (
-    <Link linkToken={linkToken} setIsLoading={props.setIsLoading} />
+    <Link linkToken={linkToken} setIsLoading={props.setIsLoading} fetchAccounts={props.fetchAccounts} />
   ) : (
     <>
       <Button variant="secondary" disabled>
