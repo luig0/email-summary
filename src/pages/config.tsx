@@ -93,9 +93,21 @@ const sendMail = async () => {
 const AccountsPanel = (props: AccountsPanelProps) => {
   useEffect(() => {
     setAccountData(props.data);
-    setDaily(props.data.map((ins: AccountData) => ins.accounts.map((acc) => false)));
-    setWeekly(props.data.map((ins: AccountData) => ins.accounts.map((acc) => false)));
-    setMonthly(props.data.map((ins: AccountData) => ins.accounts.map((acc) => false)));
+    setDaily(
+      props.data.map((ins: AccountData, insIndex) =>
+        ins.accounts.map((acc, accIndex) => props.data[insIndex].accounts[accIndex].subscriptions.isDaily)
+      )
+    );
+    setWeekly(
+      props.data.map((ins: AccountData, insIndex) =>
+        ins.accounts.map((acc, accIndex) => props.data[insIndex].accounts[accIndex].subscriptions.isWeekly)
+      )
+    );
+    setMonthly(
+      props.data.map((ins: AccountData, insIndex) =>
+        ins.accounts.map((acc, accIndex) => props.data[insIndex].accounts[accIndex].subscriptions.isMonthly)
+      )
+    );
   }, [props.data]);
 
   const { isLoading, fetchAccounts } = props;

@@ -29,7 +29,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     } catch (error: any) {
       if (error.message === messages.SESSION_HAS_EXPIRED) res.status(401).send(messages.UNAUTHORIZED);
       else {
-        console.log('udpate-subscription.ts error:', error);
+        console.log('POST subscription.ts error:', error.message);
         return res.status(500).send(messages.INTERNAL_SERVER_ERROR);
       }
     }
