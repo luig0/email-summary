@@ -453,3 +453,14 @@ export async function getSubscriptionsForAccount(
     throw new Error(error.message);
   }
 }
+
+export async function deleteSubscriptions(accessTokenUuid: string) {
+  try {
+    await dao.run(`DELETE FROM subscriptions WHERE access_token_id=(SELECT id FROM access_tokens WHERE uuid=?)`, [
+      accessTokenUuid,
+    ]);
+  } catch (error: any) {
+    console.log('Adapter.ts, deleteSubscriptions error:', error.message);
+    throw new Error(error.message);
+  }
+}
