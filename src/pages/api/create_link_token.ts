@@ -27,11 +27,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
     const sessionToken = req.cookies['session-token'];
 
     if (sessionToken) {
-      const { username } = await db.getSessionAndUser(sessionToken);
+      const { email_address } = await db.getSessionAndUser(sessionToken);
+      const id = await db.getUserId(email_address);
       const configs: LinkTokenCreateRequest = {
         user: {
           // This should correspond to a unique id for the current user.
-          client_user_id: username,
+          client_user_id: id.toString(),
         },
         client_name: 'Plaid Quickstart',
         products: PLAID_PRODUCTS,

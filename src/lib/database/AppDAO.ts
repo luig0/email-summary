@@ -14,7 +14,7 @@ const db = new sqlite3.Database(DB_PATH, async (err) => {
     const createUsersTable = `
       CREATE TABLE IF NOT EXISTS users (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
-        username TEXT NOT NULL UNIQUE,
+        email_address TEXT NOT NULL UNIQUE,
         password_hash TEXT NOT NULL,
         date_created TEXT NOT NULL,
         date_modified TEXT

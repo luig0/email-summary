@@ -20,9 +20,9 @@ export const getServerSideProps: GetServerSideProps = async ({ req, res }) => {
   );
 
   try {
-    const { username } = await db.getSessionAndUser(sessionToken);
+    const { email_address } = await db.getSessionAndUser(sessionToken);
     await db.deleteSession(sessionToken);
-    return { props: { username } };
+    return { props: { email_address } };
   } catch (error) {
     return {
       redirect: {

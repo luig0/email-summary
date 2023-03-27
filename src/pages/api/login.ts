@@ -7,12 +7,12 @@ import * as messages from '@/lib/Messages';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method === 'POST') {
-    const { username, password } = req.body;
+    const { emailAddress, password } = req.body;
 
-    if (!username || !password) res.status(400);
+    if (!emailAddress || !password) res.status(400);
 
     try {
-      const dbUser = await db.getDbUser(username);
+      const dbUser = await db.getDbUser(emailAddress);
 
       if (!dbUser) return res.status(401).send(messages.ACCESS_DENIED);
 
@@ -21,7 +21,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       if (!result) return res.status(401).send(messages.ACCESS_DENIED);
 
       const expiresAt = new Date(Date.now() + SESSION_EXPIRY_PERIOD);
-      const sessionToken = await db.createSession(username, expiresAt);
+      const sessionToken = await db.createSession(emailAddress, expiresAt);
       res.setHeader(
         'set-cookie',
         `session-token=${sessionToken}; Expires=${expiresAt.toUTCString()}; Path=/; HttpOnly; SameSite=Strict`
