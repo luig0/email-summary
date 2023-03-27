@@ -56,9 +56,9 @@ const getTransactions = async (accessToken: string) => {
   console.log(await fetchResult.json());
 };
 
-const removeAccessToken = async (uuid: string) => {
+const removeAccessToken = async (uuid: string, fetchAccounts: () => void) => {
   const fetchResult = await fetch(`/api/access_token?uuid=${uuid}`, { method: 'DELETE' });
-  if (fetchResult.ok) location.reload();
+  if (fetchResult.ok) await fetchAccounts();
 };
 
 const sendMail = async () => {
@@ -76,20 +76,22 @@ const sendMail = async () => {
 };
 
 const AccountsPanel = (props: AccountsPanelProps) => {
+  const fetchAccounts = async () => {
+    setIsLoading(true);
+
+    const fetchResult = await fetch('/api/accounts');
+    const institutions = await fetchResult.json();
+    setAccountData(institutions);
+
+    setDaily(institutions.map((ins: AccountData) => ins.accounts.map((acc) => false)));
+    setWeekly(institutions.map((ins: AccountData) => ins.accounts.map((acc) => false)));
+    setMonthly(institutions.map((ins: AccountData) => ins.accounts.map((acc) => false)));
+
+    setIsLoading(false);
+  };
+
   useEffect(() => {
-    (async () => {
-      setIsLoading(true);
-
-      const fetchResult = await fetch('/api/accounts');
-      const institutions = await fetchResult.json();
-      setAccountData(institutions);
-
-      setDaily(institutions.map((ins: AccountData) => ins.accounts.map((acc) => false)));
-      setWeekly(institutions.map((ins: AccountData) => ins.accounts.map((acc) => false)));
-      setMonthly(institutions.map((ins: AccountData) => ins.accounts.map((acc) => false)));
-
-      setIsLoading(false);
-    })();
+    fetchAccounts();
   }, []);
 
   const { isLoading, setIsLoading } = props;
@@ -138,7 +140,7 @@ const AccountsPanel = (props: AccountsPanelProps) => {
                         <Button
                           variant="danger"
                           size="sm"
-                          onClick={removeAccessToken.bind(null, ins.access_token_uuid)}
+                          onClick={removeAccessToken.bind(null, ins.access_token_uuid, fetchAccounts)}
                         >
                           Remove
                         </Button>
