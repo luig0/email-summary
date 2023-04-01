@@ -133,7 +133,7 @@ const AccountsPanel = (props: AccountsPanelProps) => {
             </td>
             <td className="text-end">
               {!isLoading && (
-                <Button className="m-1" onClick={sendMail} size="sm">
+                <Button variant="primary" className="m-1" onClick={sendMail} size="sm">
                   Send test mail
                 </Button>
               )}
