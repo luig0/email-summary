@@ -61,17 +61,7 @@ const removeAccessToken = async (accessTokenUuid: string, fetchAccounts: () => v
 };
 
 const sendMail = async () => {
-  const fetchResult = await fetch('/api/sendmail', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({
-      to: 'jhcao.g1@gmail.com',
-      subject: 'sending a test mail from email-summary',
-      text: 'huzzah! nodemailer worked with gmail from my app!',
-    }),
-  });
+  await fetch('/api/sendmail', { method: 'POST' });
 };
 
 const AccountsPanel = (props: AccountsPanelProps) => {

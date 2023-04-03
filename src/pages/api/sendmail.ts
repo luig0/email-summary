@@ -1,3 +1,5 @@
+import util from 'util';
+
 import type { NextApiRequest, NextApiResponse } from 'next';
 import type { TransactionsGetRequest } from 'plaid';
 
@@ -77,7 +79,7 @@ const sendDailyUpdate = async (sortedSubs: SortedSubscriptions): Promise<void> =
   let emailBody = '';
 
   const date = new Date();
-  date.setDate(date.getDate() - 5);
+  date.setDate(date.getDate() - 1);
   const dateString = `${date.getFullYear()}-${(date.getMonth() + 1).toString().padStart(2, '0')}-${date
     .getDate()
     .toString()
@@ -104,19 +106,17 @@ const sendDailyUpdate = async (sortedSubs: SortedSubscriptions): Promise<void> =
 
         emailBody += `<br>${response.data.accounts[0].official_name} (${response.data.accounts[0].mask})`;
 
-        emailBody += `
-          <table border="1">
-            <tbody>
-              ${response.data.transactions.map(
-                (t) => `<tr><td>${t.date}</td><td>${t.name}</td><td>${t.amount.toFixed(2)}</td></tr>`
-              )}
-            </tbody>
-          </table>
-        `;
-
-        const transactions = response.data.transactions.map((t) => `${t.date} ${t.name} ${t.amount.toFixed(2)}`);
-
-        emailBody += '<br>' + transactions.join('<br>') + '<br>';
+        if (response.data.transactions.length > 0)
+          emailBody += `
+            <table border="1">
+              <tbody>
+                ${response.data.transactions.map(
+                  (t) => `<tr><td>${t.date}</td><td>${t.name}</td><td>${t.amount.toFixed(2)}</td></tr>`
+                )}
+              </tbody>
+            </table>
+          `;
+        else emailBody += '<div>No transactions found</div>';
       }
     }
   }
@@ -130,18 +130,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   if (req.method === 'POST') {
     try {
       const auth = await checkAuth(req);
+      let mailerData = auth.isCron ? await db.getMailerData() : await db.getMailerDataForUser(auth.emailAddress!);
 
-      if (auth.isCron) {
-        const mailerData = await db.getMailerData();
-        const sortedSubs = sortByEmailAndAccesToken(mailerData);
-        await sendDailyUpdate(sortedSubs);
+      const sortedSubs = sortByEmailAndAccesToken(mailerData);
+      await sendDailyUpdate(sortedSubs);
 
-        res.status(200).send(messages.OK);
-      } else {
-        const { to, subject, text } = req.body;
-        await sendMail(to, subject, text);
-        res.status(200).send(messages.OK);
-      }
+      res.status(200).send(messages.OK);
     } catch (error: any) {
       if (error.message === messages.SESSION_HAS_EXPIRED || error.message === messages.UNAUTHORIZED)
         res.status(401).send(messages.UNAUTHORIZED);

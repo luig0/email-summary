@@ -183,6 +183,8 @@ export async function getSessionAndUser(sessionToken: string): Promise<GetSessio
       [sessionToken]
     );
 
+    if (!result) throw new Error(messages.UNAUTHORIZED);
+
     if (isSessionExpired(result.expires_at)) throw new Error(messages.SESSION_HAS_EXPIRED);
 
     return result;
@@ -393,6 +395,30 @@ export async function getMailerData(): Promise<GetMailerDataResponse[]> {
       LEFT JOIN users ON access_tokens.user_id = users.id
       ORDER BY email_address, institution_name;
     `);
+  } catch (error: any) {
+    console.log('Adapter.ts, getMailerData error:', error.message);
+    throw new Error(error.message);
+  }
+}
+
+export async function getMailerDataForUser(emailAddress: string) {
+  try {
+    return await dao.all(
+      `
+      SELECT
+        users.email_address,
+        institutions.name as institution_name,
+        access_tokens.access_token,
+        accounts.account_id
+      FROM accounts
+      LEFT JOIN access_tokens ON accounts.access_token_id = access_tokens.id
+      LEFT JOIN institutions ON accounts.institution_id = institutions.id
+      LEFT JOIN users ON access_tokens.user_id = users.id
+        WHERE users.email_address = ?
+      ORDER BY email_address, institution_name;
+    `,
+      [emailAddress]
+    );
   } catch (error: any) {
     console.log('Adapter.ts, getMailerData error:', error.message);
     throw new Error(error.message);
