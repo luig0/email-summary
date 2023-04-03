@@ -9,8 +9,6 @@ import Col from 'react-bootstrap/Col';
 import Button from 'react-bootstrap/Button';
 import Table from 'react-bootstrap/Table';
 import Spinner from 'react-bootstrap/Spinner';
-import ToggleButton from 'react-bootstrap/ToggleButton';
-import ButtonGroup from 'react-bootstrap/ButtonGroup';
 
 import * as db from '@/lib/database/Adapter';
 import LinkAccounts from '@/components/LinkAccounts';
@@ -62,60 +60,17 @@ const removeAccessToken = async (accessTokenUuid: string, fetchAccounts: () => v
   if (fetchResult.ok) await fetchAccounts();
 };
 
-const updateSubscription = async (
-  accessTokenUuid: string,
-  accountUuid: string,
-  isDaily: boolean,
-  isWeekly: boolean,
-  isMonthly: boolean
-): Promise<void> => {
-  const fetchResult = await fetch('/api/subscriptions', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ accessTokenUuid, accountUuid, isDaily, isWeekly, isMonthly }),
-  });
-};
-
 const sendMail = async () => {
-  const fetchResult = await fetch('/api/sendmail', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({
-      to: 'jhcao.g1@gmail.com',
-      subject: 'sending a test mail from email-summary',
-      text: 'huzzah! nodemailer worked with gmail from my app!',
-    }),
-  });
+  await fetch('/api/sendmail', { method: 'POST' });
 };
 
 const AccountsPanel = (props: AccountsPanelProps) => {
   useEffect(() => {
     setAccountData(props.data);
-    setDaily(
-      props.data.map((ins: AccountData, insIndex) =>
-        ins.accounts.map((acc, accIndex) => props.data[insIndex].accounts[accIndex].subscriptions.isDaily)
-      )
-    );
-    setWeekly(
-      props.data.map((ins: AccountData, insIndex) =>
-        ins.accounts.map((acc, accIndex) => props.data[insIndex].accounts[accIndex].subscriptions.isWeekly)
-      )
-    );
-    setMonthly(
-      props.data.map((ins: AccountData, insIndex) =>
-        ins.accounts.map((acc, accIndex) => props.data[insIndex].accounts[accIndex].subscriptions.isMonthly)
-      )
-    );
   }, [props.data]);
 
   const { isLoading, fetchAccounts } = props;
   const [accountData, setAccountData] = useState(props.data);
-
-  const [daily, setDaily] = useState<boolean[][]>();
-  const [weekly, setWeekly] = useState<boolean[][]>();
-  const [monthly, setMonthly] = useState<boolean[][]>();
 
   return (
     <>
@@ -133,7 +88,7 @@ const AccountsPanel = (props: AccountsPanelProps) => {
             </td>
             <td className="text-end">
               {!isLoading && (
-                <Button className="m-1" onClick={sendMail} size="sm">
+                <Button variant="primary" className="m-1" onClick={sendMail} size="sm">
                   Send test mail
                 </Button>
               )}
@@ -167,112 +122,8 @@ const AccountsPanel = (props: AccountsPanelProps) => {
                     {accounts.map((acc, accIndex) => {
                       return (
                         <tr key={`acc-${insIndex}-${accIndex}`}>
-                          <td className="ps-5 align-middle border-end-0">
+                          <td className="ps-5 align-middle" colSpan={2}>
                             {acc.official_name} ({acc.mask})
-                          </td>
-                          <td className="text-center border-start-0">
-                            <ButtonGroup size="sm">
-                              <ToggleButton
-                                id={`toggle-daily-${insIndex}-${accIndex}`}
-                                type="checkbox"
-                                variant="outline-dark"
-                                checked={daily![insIndex][accIndex]}
-                                value="d"
-                                onChange={async (e) => {
-                                  const newDaily = JSON.parse(JSON.stringify(daily));
-                                  newDaily![insIndex][accIndex] = e.currentTarget.checked;
-
-                                  await updateSubscription(
-                                    props.data[insIndex].access_token_uuid,
-                                    props.data[insIndex].accounts[accIndex].uuid,
-                                    e.currentTarget.checked,
-                                    weekly![insIndex][accIndex],
-                                    monthly![insIndex][accIndex]
-                                  );
-
-                                  setDaily(newDaily);
-                                }}
-                              >
-                                Daily
-                              </ToggleButton>
-                              <ToggleButton
-                                id={`toggle-weekly-${insIndex}-${accIndex}`}
-                                type="checkbox"
-                                variant="outline-dark"
-                                checked={weekly![insIndex][accIndex]}
-                                value="w"
-                                onChange={async (e) => {
-                                  const newWeekly = JSON.parse(JSON.stringify(weekly));
-                                  newWeekly![insIndex][accIndex] = e.currentTarget.checked;
-
-                                  await updateSubscription(
-                                    props.data[insIndex].access_token_uuid,
-                                    props.data[insIndex].accounts[accIndex].uuid,
-                                    daily![insIndex][accIndex],
-                                    e.currentTarget.checked,
-                                    monthly![insIndex][accIndex]
-                                  );
-
-                                  setWeekly(newWeekly);
-                                }}
-                              >
-                                Weekly
-                              </ToggleButton>
-                              <ToggleButton
-                                id={`toggle-monthly-${insIndex}-${accIndex}`}
-                                type="checkbox"
-                                variant="outline-dark"
-                                checked={monthly![insIndex][accIndex]}
-                                value="m"
-                                onChange={async (e) => {
-                                  const newMonthly = JSON.parse(JSON.stringify(monthly));
-                                  newMonthly![insIndex][accIndex] = e.currentTarget.checked;
-
-                                  await updateSubscription(
-                                    props.data[insIndex].access_token_uuid,
-                                    props.data[insIndex].accounts[accIndex].uuid,
-                                    daily![insIndex][accIndex],
-                                    weekly![insIndex][accIndex],
-                                    e.currentTarget.checked
-                                  );
-
-                                  setMonthly(newMonthly);
-                                }}
-                              >
-                                Monthly
-                              </ToggleButton>
-                            </ButtonGroup>
-
-                            <Button
-                              variant="outline-dark"
-                              className="m-1"
-                              onClick={async () => {
-                                const newState = !daily![insIndex][accIndex];
-
-                                const newDaily = JSON.parse(JSON.stringify(daily));
-                                newDaily![insIndex][accIndex] = newState;
-                                setDaily(newDaily);
-
-                                const newWeekly = JSON.parse(JSON.stringify(weekly));
-                                newWeekly![insIndex][accIndex] = newState;
-                                setWeekly(newWeekly);
-
-                                const newMonthly = JSON.parse(JSON.stringify(monthly));
-                                newMonthly![insIndex][accIndex] = newState;
-                                setMonthly(newMonthly);
-
-                                await updateSubscription(
-                                  props.data[insIndex].access_token_uuid,
-                                  props.data[insIndex].accounts[accIndex].uuid,
-                                  newState,
-                                  newState,
-                                  newState
-                                );
-                              }}
-                              size="sm"
-                            >
-                              Toggle All
-                            </Button>
                           </td>
                         </tr>
                       );

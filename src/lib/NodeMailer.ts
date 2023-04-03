@@ -11,14 +11,14 @@ const transporter = nodemailer.createTransport({
   },
 });
 
-export const sendMail = (to: string, subject: string, text: string) => {
+export const sendMail = (to: string, subject: string, html: string) => {
   return new Promise((resolve, reject) => {
     transporter.sendMail(
       {
         from: 'jhcao.net',
         to,
         subject,
-        text,
+        html,
       },
       function (error, info) {
         if (error) {

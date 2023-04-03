@@ -99,19 +99,11 @@ interface GetAccountResponse {
   uuid: string;
 }
 
-interface CreateSubscriptionRequest {
-  emailAddress: string;
-  accessTokenUuid: string;
-  accountUuid: string;
-  isDaily: boolean;
-  isWeekly: boolean;
-  isMonthly: boolean;
-}
-
-export interface GetSubscriptionsResponse {
-  is_daily: number;
-  is_weekly: number;
-  is_monthly: number;
+export interface GetMailerDataResponse {
+  email_address: string;
+  institution_name: string;
+  access_token: string;
+  account_id: string;
 }
 
 function isSessionExpired(expiresAt: string): boolean {
@@ -190,6 +182,8 @@ export async function getSessionAndUser(sessionToken: string): Promise<GetSessio
       `,
       [sessionToken]
     );
+
+    if (!result) throw new Error(messages.UNAUTHORIZED);
 
     if (isSessionExpired(result.expires_at)) throw new Error(messages.SESSION_HAS_EXPIRED);
 
@@ -387,80 +381,46 @@ export async function deleteAccounts(accessTokenUuid: string): Promise<void> {
   }
 }
 
-export async function upsertSubscription({
-  emailAddress,
-  accessTokenUuid,
-  accountUuid,
-  isDaily,
-  isWeekly,
-  isMonthly,
-}: CreateSubscriptionRequest) {
+export async function getMailerData(): Promise<GetMailerDataResponse[]> {
   try {
-    await dao.run(
-      `
-      INSERT INTO subscriptions (
-        user_id, access_token_id, account_id, is_daily, is_weekly, is_monthly, date_created, date_modified
-      )
-      VALUES (
-        (SELECT id FROM users WHERE email_address=?),
-        (SELECT id FROM access_tokens WHERE uuid=?),
-        (SELECT id FROM accounts WHERE uuid=?),
-        ?,
-        ?,
-        ?,
-        ?,
-        ?
-      ) ON CONFLICT (account_id) DO UPDATE SET
-        is_daily=excluded.is_daily,
-        is_weekly=excluded.is_weekly,
-        is_monthly=excluded.is_monthly,
-        date_modified=excluded.date_created;
-    `,
-      [
-        emailAddress,
-        accessTokenUuid,
-        accountUuid,
-        isDaily ? '1' : '0',
-        isWeekly ? '1' : '0',
-        isMonthly ? '1' : '0',
-        new Date().toISOString(),
-        null,
-      ]
-    );
+    return await dao.all(`
+      SELECT
+        users.email_address,
+        institutions.name as institution_name,
+        access_tokens.access_token,
+        accounts.account_id
+      FROM accounts
+      LEFT JOIN access_tokens ON accounts.access_token_id = access_tokens.id
+      LEFT JOIN institutions ON accounts.institution_id = institutions.id
+      LEFT JOIN users ON access_tokens.user_id = users.id
+      ORDER BY email_address, institution_name;
+    `);
   } catch (error: any) {
-    console.log('Adapter.ts, upsertSubscription error:', error.message);
+    console.log('Adapter.ts, getMailerData error:', error.message);
     throw new Error(error.message);
   }
 }
 
-export async function getSubscriptionsForAccount(
-  accessToken: string,
-  accountUuid: string
-): Promise<GetSubscriptionsResponse | undefined> {
+export async function getMailerDataForUser(emailAddress: string) {
   try {
-    return await dao.get(
+    return await dao.all(
       `
-      SELECT is_daily, is_weekly, is_monthly 
-      FROM subscriptions
-      WHERE
-        access_token_id=(SELECT id FROM access_tokens WHERE access_token=?) AND
-        account_id=(SELECT id FROM accounts WHERE uuid=?);
+      SELECT
+        users.email_address,
+        institutions.name as institution_name,
+        access_tokens.access_token,
+        accounts.account_id
+      FROM accounts
+      LEFT JOIN access_tokens ON accounts.access_token_id = access_tokens.id
+      LEFT JOIN institutions ON accounts.institution_id = institutions.id
+      LEFT JOIN users ON access_tokens.user_id = users.id
+        WHERE users.email_address = ?
+      ORDER BY email_address, institution_name;
     `,
-      [accessToken, accountUuid]
+      [emailAddress]
     );
   } catch (error: any) {
-    console.log('Adapter.ts, getSubscriptionsForAccount error:', error.message);
-    throw new Error(error.message);
-  }
-}
-
-export async function deleteSubscriptions(accessTokenUuid: string) {
-  try {
-    await dao.run(`DELETE FROM subscriptions WHERE access_token_id=(SELECT id FROM access_tokens WHERE uuid=?)`, [
-      accessTokenUuid,
-    ]);
-  } catch (error: any) {
-    console.log('Adapter.ts, deleteSubscriptions error:', error.message);
+    console.log('Adapter.ts, getMailerData error:', error.message);
     throw new Error(error.message);
   }
 }

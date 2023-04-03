@@ -51,7 +51,7 @@ const Link: React.FC<LinkProps> = (props: LinkProps) => {
 
   return (
     <Button
-      variant="outline-primary"
+      variant="outline-dark"
       onClick={() => {
         setIsLoading(true);
         open();
