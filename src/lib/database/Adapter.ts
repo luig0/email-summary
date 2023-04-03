@@ -99,31 +99,6 @@ interface GetAccountResponse {
   uuid: string;
 }
 
-interface CreateSubscriptionRequest {
-  emailAddress: string;
-  accessTokenUuid: string;
-  accountUuid: string;
-  isDaily: boolean;
-  isWeekly: boolean;
-  isMonthly: boolean;
-}
-
-export interface GetSubscriptionsResponse {
-  is_daily: number;
-  is_weekly: number;
-  is_monthly: number;
-}
-
-export interface SubscriptionRecord {
-  email_address: string;
-  name: string;
-  access_token: string;
-  account_id: string;
-  is_daily: number;
-  is_weekly: number;
-  is_monthly: number;
-}
-
 function isSessionExpired(expiresAt: string): boolean {
   return Date.now() - new Date(expiresAt).getTime() > 0;
 }
@@ -397,104 +372,26 @@ export async function deleteAccounts(accessTokenUuid: string): Promise<void> {
   }
 }
 
-export async function upsertSubscription({
-  emailAddress,
-  accessTokenUuid,
-  accountUuid,
-  isDaily,
-  isWeekly,
-  isMonthly,
-}: CreateSubscriptionRequest) {
-  try {
-    await dao.run(
-      `
-      INSERT INTO subscriptions (
-        user_id, access_token_id, account_id, is_daily, is_weekly, is_monthly, date_created, date_modified
-      )
-      VALUES (
-        (SELECT id FROM users WHERE email_address=?),
-        (SELECT id FROM access_tokens WHERE uuid=?),
-        (SELECT id FROM accounts WHERE uuid=?),
-        ?,
-        ?,
-        ?,
-        ?,
-        ?
-      ) ON CONFLICT (account_id) DO UPDATE SET
-        is_daily=excluded.is_daily,
-        is_weekly=excluded.is_weekly,
-        is_monthly=excluded.is_monthly,
-        date_modified=excluded.date_created;
-    `,
-      [
-        emailAddress,
-        accessTokenUuid,
-        accountUuid,
-        isDaily ? '1' : '0',
-        isWeekly ? '1' : '0',
-        isMonthly ? '1' : '0',
-        new Date().toISOString(),
-        null,
-      ]
-    );
-  } catch (error: any) {
-    console.log('Adapter.ts, upsertSubscription error:', error.message);
-    throw new Error(error.message);
-  }
-}
-
-export async function getSubscriptionsForAccount(
-  accessToken: string,
-  accountUuid: string
-): Promise<GetSubscriptionsResponse | undefined> {
-  try {
-    return await dao.get(
-      `
-      SELECT is_daily, is_weekly, is_monthly 
-      FROM subscriptions
-      WHERE
-        access_token_id=(SELECT id FROM access_tokens WHERE access_token=?) AND
-        account_id=(SELECT id FROM accounts WHERE uuid=?);
-    `,
-      [accessToken, accountUuid]
-    );
-  } catch (error: any) {
-    console.log('Adapter.ts, getSubscriptionsForAccount error:', error.message);
-    throw new Error(error.message);
-  }
-}
-
-export async function getAllSubscriptions(): Promise<SubscriptionRecord[]> {
-  try {
-    return await dao.all(`
-      SELECT
-        users.email_address,
-        institutions.name,
-        tokens.access_token,
-        accounts.account_id,
-        subs.is_daily,
-        subs.is_weekly,
-        subs.is_monthly
-      FROM subscriptions subs
-      LEFT JOIN users ON subs.user_id=users.id
-      LEFT JOIN access_tokens tokens ON subs.access_token_id=tokens.id
-      LEFT JOIN accounts ON subs.account_id=accounts.id
-      LEFT JOIN institutions ON accounts.institution_id=institutions.id
-      ORDER BY email_address, access_token;
-    `);
-  } catch (error: any) {
-    console.log('Adapter.ts, getAllSubscriptions error:', error.message);
-    throw new Error(error.message);
-  }
-}
-
-export async function deleteSubscriptions(accessTokenUuid: string) {
-  try {
-    await dao.run(`DELETE FROM subscriptions WHERE access_token_id=(SELECT id FROM access_tokens WHERE uuid=?)`, [
-      accessTokenUuid,
-    ]);
-  } catch (error: any) {
-    console.log('Adapter.ts, deleteSubscriptions error:', error.message);
-    throw new Error(error.message);
-  }
-}
+// export async function getAllSubscriptions(): Promise<SubscriptionRecord[]> {
+//   try {
+//     return await dao.all(`
+//       SELECT
+//         users.email_address,
+//         institutions.name,
+//         tokens.access_token,
+//         accounts.account_id,
+//         subs.is_daily,
+//         subs.is_weekly,
+//         subs.is_monthly
+//       FROM subscriptions subs
+//       LEFT JOIN users ON subs.user_id=users.id
+//       LEFT JOIN access_tokens tokens ON subs.access_token_id=tokens.id
+//       LEFT JOIN accounts ON subs.account_id=accounts.id
+//       LEFT JOIN institutions ON accounts.institution_id=institutions.id
+//       ORDER BY email_address, access_token;
+//     `);
+//   } catch (error: any) {
+//     console.log('Adapter.ts, getAllSubscriptions error:', error.message);
+//     throw new Error(error.message);
+//   }
+// }

@@ -2,7 +2,6 @@ import type { NextApiRequest, NextApiResponse } from 'next';
 import type { Email, TransactionsGetRequest } from 'plaid';
 
 import * as db from '@/lib/database/Adapter';
-import type { SubscriptionRecord } from '@/lib/database/Adapter';
 import * as messages from '@/lib/Messages';
 import { sendMail } from '@/lib/NodeMailer';
 import plaidClient from '@/lib/PlaidApiClient';
