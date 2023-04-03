@@ -1,7 +1,8 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
-import type { Email, TransactionsGetRequest } from 'plaid';
+import type { TransactionsGetRequest } from 'plaid';
 
 import * as db from '@/lib/database/Adapter';
+import type { GetMailerDataResponse } from '@/lib/database/Adapter';
 import * as messages from '@/lib/Messages';
 import { sendMail } from '@/lib/NodeMailer';
 import plaidClient from '@/lib/PlaidApiClient';
@@ -49,11 +50,11 @@ const checkAuth = async (req: NextApiRequest): Promise<CheckAuthResponse> => {
   }
 };
 
-const sortByEmailAndAccesToken = (subscriptionRecords: SubscriptionRecord[]): SortedSubscriptions => {
+const sortByEmailAndAccesToken = (subscriptionRecords: GetMailerDataResponse[]): SortedSubscriptions => {
   const emailSubs: SortedSubscriptions = {};
 
   for (const subRecord of subscriptionRecords) {
-    const { email_address, access_token, account_id, name: institution_name } = subRecord;
+    const { email_address, institution_name, access_token, account_id } = subRecord;
 
     if (emailSubs.hasOwnProperty(email_address)) {
       const emailSub = emailSubs[email_address];
@@ -71,16 +72,18 @@ const sortByEmailAndAccesToken = (subscriptionRecords: SubscriptionRecord[]): So
   return emailSubs;
 };
 
-const sendDailyUpdate = async (dailySubscriptions: SortedSubscriptions) => {
+const sendDailyUpdate = async (sortedSubs: SortedSubscriptions): Promise<void> => {
   let to;
   let emailBody = '';
 
   const date = new Date();
-  date.setDate(date.getDate() - 1);
-  const dateString = `${date.getFullYear()}-${(date.getMonth() + 1).toString().padStart(2, '0')}-${date.getDate()}`;
-  console.log('dateString:', dateString);
+  date.setDate(date.getDate() - 5);
+  const dateString = `${date.getFullYear()}-${(date.getMonth() + 1).toString().padStart(2, '0')}-${date
+    .getDate()
+    .toString()
+    .padStart(2, '0')}`;
 
-  for (const [email_address, user] of Object.entries(dailySubscriptions)) {
+  for (const [email_address, user] of Object.entries(sortedSubs)) {
     to = email_address;
 
     // TODO: parallelize the requests
@@ -96,11 +99,22 @@ const sendDailyUpdate = async (dailySubscriptions: SortedSubscriptions) => {
             account_ids: [account_id],
           },
         };
+
         const response = await plaidClient.transactionsGet(request);
 
         emailBody += `<br>${response.data.accounts[0].official_name} (${response.data.accounts[0].mask})`;
 
-        const transactions = response.data.transactions.map((t) => `${t.date} ${t.name} $${t.amount.toFixed(2)}`);
+        emailBody += `
+          <table border="1">
+            <tbody>
+              ${response.data.transactions.map(
+                (t) => `<tr><td>${t.date}</td><td>${t.name}</td><td>${t.amount.toFixed(2)}</td></tr>`
+              )}
+            </tbody>
+          </table>
+        `;
+
+        const transactions = response.data.transactions.map((t) => `${t.date} ${t.name} ${t.amount.toFixed(2)}`);
 
         emailBody += '<br>' + transactions.join('<br>') + '<br>';
       }
@@ -118,28 +132,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       const auth = await checkAuth(req);
 
       if (auth.isCron) {
-        let subscriptions = await db.getAllSubscriptions();
+        const mailerData = await db.getMailerData();
+        const sortedSubs = sortByEmailAndAccesToken(mailerData);
+        await sendDailyUpdate(sortedSubs);
 
-        const { update_period } = req.body;
-        let sortedSubs;
-
-        switch (update_period) {
-          case 'daily':
-            const dailySubscriptions = sortByEmailAndAccesToken(subscriptions.filter((s) => s.is_daily !== 0));
-            await sendDailyUpdate(dailySubscriptions);
-            break;
-          case 'weekly':
-            subscriptions = subscriptions.filter((s) => s.is_weekly !== 0);
-            sortedSubs = sortByEmailAndAccesToken(subscriptions);
-            break;
-          case 'monthly':
-            subscriptions = subscriptions.filter((s) => s.is_monthly !== 0);
-            sortedSubs = sortByEmailAndAccesToken(subscriptions);
-            break;
-          default:
-            subscriptions = [];
-            break;
-        }
         res.status(200).send(messages.OK);
       } else {
         const { to, subject, text } = req.body;

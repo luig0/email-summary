@@ -99,6 +99,13 @@ interface GetAccountResponse {
   uuid: string;
 }
 
+export interface GetMailerDataResponse {
+  email_address: string;
+  institution_name: string;
+  access_token: string;
+  account_id: string;
+}
+
 function isSessionExpired(expiresAt: string): boolean {
   return Date.now() - new Date(expiresAt).getTime() > 0;
 }
@@ -372,26 +379,22 @@ export async function deleteAccounts(accessTokenUuid: string): Promise<void> {
   }
 }
 
-// export async function getAllSubscriptions(): Promise<SubscriptionRecord[]> {
-//   try {
-//     return await dao.all(`
-//       SELECT
-//         users.email_address,
-//         institutions.name,
-//         tokens.access_token,
-//         accounts.account_id,
-//         subs.is_daily,
-//         subs.is_weekly,
-//         subs.is_monthly
-//       FROM subscriptions subs
-//       LEFT JOIN users ON subs.user_id=users.id
-//       LEFT JOIN access_tokens tokens ON subs.access_token_id=tokens.id
-//       LEFT JOIN accounts ON subs.account_id=accounts.id
-//       LEFT JOIN institutions ON accounts.institution_id=institutions.id
-//       ORDER BY email_address, access_token;
-//     `);
-//   } catch (error: any) {
-//     console.log('Adapter.ts, getAllSubscriptions error:', error.message);
-//     throw new Error(error.message);
-//   }
-// }
+export async function getMailerData(): Promise<GetMailerDataResponse[]> {
+  try {
+    return await dao.all(`
+      SELECT
+        users.email_address,
+        institutions.name as institution_name,
+        access_tokens.access_token,
+        accounts.account_id
+      FROM accounts
+      LEFT JOIN access_tokens ON accounts.access_token_id = access_tokens.id
+      LEFT JOIN institutions ON accounts.institution_id = institutions.id
+      LEFT JOIN users ON access_tokens.user_id = users.id
+      ORDER BY email_address, institution_name;
+    `);
+  } catch (error: any) {
+    console.log('Adapter.ts, getMailerData error:', error.message);
+    throw new Error(error.message);
+  }
+}
