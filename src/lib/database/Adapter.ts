@@ -114,6 +114,16 @@ export interface GetSubscriptionsResponse {
   is_monthly: number;
 }
 
+export interface SubscriptionRecord {
+  email_address: string;
+  name: string;
+  access_token: string;
+  account_id: string;
+  is_daily: number;
+  is_weekly: number;
+  is_monthly: number;
+}
+
 function isSessionExpired(expiresAt: string): boolean {
   return Date.now() - new Date(expiresAt).getTime() > 0;
 }
@@ -450,6 +460,30 @@ export async function getSubscriptionsForAccount(
     );
   } catch (error: any) {
     console.log('Adapter.ts, getSubscriptionsForAccount error:', error.message);
+    throw new Error(error.message);
+  }
+}
+
+export async function getAllSubscriptions(): Promise<SubscriptionRecord[]> {
+  try {
+    return await dao.all(`
+      SELECT
+        users.email_address,
+        institutions.name,
+        tokens.access_token,
+        accounts.account_id,
+        subs.is_daily,
+        subs.is_weekly,
+        subs.is_monthly
+      FROM subscriptions subs
+      LEFT JOIN users ON subs.user_id=users.id
+      LEFT JOIN access_tokens tokens ON subs.access_token_id=tokens.id
+      LEFT JOIN accounts ON subs.account_id=accounts.id
+      LEFT JOIN institutions ON accounts.institution_id=institutions.id
+      ORDER BY email_address, access_token;
+    `);
+  } catch (error: any) {
+    console.log('Adapter.ts, getAllSubscriptions error:', error.message);
     throw new Error(error.message);
   }
 }
