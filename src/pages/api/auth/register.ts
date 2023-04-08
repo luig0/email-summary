@@ -6,14 +6,17 @@ import { SESSION_EXPIRY_PERIOD } from '@/Constants';
 import * as messages from '@/lib/Messages';
 
 const SALT_ROUNDS = 12;
+const INVITE_CODE = process.env.INVITE_CODE;
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+  if (!INVITE_CODE) throw new Error('unable to read invite code from environment variables!');
+
   if (req.method === 'POST') {
     const { emailAddress, password, inviteCode } = req.body;
 
     if (!emailAddress || !password || !inviteCode) return res.status(400).send(messages.BAD_REQUEST);
 
-    if (inviteCode !== 'word') return res.status(400).send(messages.BAD_REQUEST);
+    if (inviteCode !== INVITE_CODE) return res.status(400).send(messages.BAD_REQUEST);
 
     try {
       const passwordHash = await bcrypt.hash(password, SALT_ROUNDS);
