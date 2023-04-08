@@ -34,4 +34,6 @@ export const getServerSideProps: GetServerSideProps = async ({ req, res }) => {
   }
 };
 
-export default () => <>You have been logged out.</>;
+const Logout = () => <>You have been logged out.</>;
+
+export default Logout;
