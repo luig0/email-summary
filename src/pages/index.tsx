@@ -158,7 +158,7 @@ const App = (props: AppProps) => {
 
   useEffect(() => {
     if (props.loggedIn) router.push('/config');
-  }, []);
+  }, [props.loggedIn, router]);
 
   return (
     <Container className="mt-5">
@@ -175,7 +175,7 @@ const App = (props: AppProps) => {
   );
 };
 
-export default (props: AppProps) => {
+const Home = (props: AppProps) => {
   return (
     <>
       <Head>
@@ -190,3 +190,5 @@ export default (props: AppProps) => {
     </>
   );
 };
+
+export default Home;

@@ -18,27 +18,30 @@ interface LinkProps {
   fetchAccounts: () => void;
 }
 const Link: React.FC<LinkProps> = (props: LinkProps) => {
-  const onSuccess = useCallback(async (public_token: string, metadata: PlaidLinkOnSuccessMetadata) => {
-    // send public_token to server
-    const response = await fetch('/api/access_token', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ public_token }),
-    });
-    // Handle response ...
-    // console.log('Link onSuccess, response data:', response.statusText);
-    setIsLoading(false);
-    props.fetchAccounts();
-  }, []);
+  const { setIsLoading, fetchAccounts } = props;
+
+  const onSuccess = useCallback(
+    async (public_token: string, metadata: PlaidLinkOnSuccessMetadata) => {
+      // send public_token to server
+      const response = await fetch('/api/access_token', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ public_token }),
+      });
+      // Handle response ...
+      // console.log('Link onSuccess, response data:', response.statusText);
+      setIsLoading(false);
+      fetchAccounts();
+    },
+    [setIsLoading, fetchAccounts]
+  );
 
   const onExit = () => {
     // https://plaid.com/docs/link/web/#onexit
     setIsLoading(false);
   };
-
-  const { setIsLoading } = props;
 
   const config: Parameters<typeof usePlaidLink>[0] = {
     token: props.linkToken,
@@ -63,7 +66,7 @@ const Link: React.FC<LinkProps> = (props: LinkProps) => {
   );
 };
 
-export default (props: LinkAccountsProps) => {
+const LinkAccounts = (props: LinkAccountsProps) => {
   const generateToken = async () => {
     const response = await fetch('/api/create_link_token', {
       method: 'POST',
@@ -92,3 +95,5 @@ export default (props: LinkAccountsProps) => {
     </>
   );
 };
+
+export default LinkAccounts;

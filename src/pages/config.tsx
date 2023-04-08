@@ -139,7 +139,7 @@ const AccountsPanel = (props: AccountsPanelProps) => {
   );
 };
 
-export default (props: HomeProps) => {
+const ConfigPanel = (props: HomeProps) => {
   const fetchAccounts = async () => {
     setIsLoading(true);
 
@@ -191,3 +191,5 @@ export default (props: HomeProps) => {
     </main>
   );
 };
+
+export default ConfigPanel;
