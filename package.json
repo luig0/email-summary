@@ -16,6 +16,7 @@
     "bootstrap": "^5.2.3",
     "eslint": "8.36.0",
     "eslint-config-next": "13.2.4",
+    "lru-cache": "^9.0.1",
     "next": "13.2.4",
     "nodemailer": "^6.9.1",
     "plaid": "^12.5.0",
@@ -29,6 +30,7 @@
   },
   "devDependencies": {
     "@types/bcrypt": "^5.0.0",
+    "@types/lru-cache": "^7.10.10",
     "@types/nodemailer": "^6.4.7",
     "@types/plaid-link": "^2.0.11",
     "@types/uuid": "^9.0.1",
