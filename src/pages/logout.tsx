@@ -34,6 +34,10 @@ export const getServerSideProps: GetServerSideProps = async ({ req, res }) => {
   }
 };
 
-const Logout = () => <>You have been logged out.</>;
+const Logout = () => {
+  setTimeout(() => location.reload(), 3000);
+
+  return <>You have been logged out.</>;
+};
 
 export default Logout;
