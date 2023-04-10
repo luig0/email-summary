@@ -4,8 +4,20 @@ import type { NextApiRequest, NextApiResponse } from 'next';
 import * as db from '@/lib/database/Adapter';
 import { SESSION_EXPIRY_PERIOD } from '@/Constants';
 import * as messages from '@/lib/Messages';
+import rateLimit from '@/lib/RateLimit';
+
+const limiter = rateLimit({
+  interval: 60 * 1000, // 60 seconds
+  uniqueTokenPerInterval: 500, // Max 500 users per second
+});
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+  try {
+    await limiter.check(res, 6, JSON.stringify(req.headers['x-real-ip'])); // 6 requests per minute
+  } catch (error) {
+    return res.status(429).send(messages.RATE_LIMIT_EXCEEDED);
+  }
+
   if (req.method === 'POST') {
     const { emailAddress, password } = req.body;
 

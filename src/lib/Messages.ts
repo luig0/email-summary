@@ -4,6 +4,7 @@ export const CREATED = 'Created';
 export const INTERNAL_SERVER_ERROR = 'Internal Server Error';
 export const METHOD_NOT_ALLOWED = 'Method Not Allowed';
 export const OK = 'OK';
+export const RATE_LIMIT_EXCEEDED = 'Rate Limit Exceeded';
 export const UNAUTHORIZED = 'Unauthorized';
 
 export const EMAIL_ALREADY_REGISTERED = 'Email Address Already Registered';
