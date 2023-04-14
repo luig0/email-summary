@@ -17,7 +17,10 @@ const db = new sqlite3.Database(DB_PATH, async (err) => {
         email_address TEXT NOT NULL UNIQUE,
         password_hash TEXT NOT NULL,
         date_created TEXT NOT NULL,
-        date_modified TEXT
+        date_modified TEXT,
+        is_daily INTEGER NOT NULL,
+        is_weekly INTEGER NOT NULL,
+        is_monthly INTEGER NOT NULL
       );
     `;
 
