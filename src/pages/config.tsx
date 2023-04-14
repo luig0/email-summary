@@ -96,15 +96,27 @@ const AccountsPanel = (props: AccountsPanelProps) => {
             <td className="text-end">
               {!isLoading && (
                 <>
-                  <Button
-                    variant="primary"
-                    className="m-1"
-                    onClick={sendMail.bind(null, 'daily')}
-                    size="sm"
-                    disabled={isSendingMail}
-                  >
-                    Test Daily Update
-                  </Button>
+                  {isSendingMail ? (
+                    <Button
+                      variant="primary"
+                      className="m-1"
+                      onClick={sendMail.bind(null, 'daily')}
+                      size="sm"
+                      disabled={isSendingMail}
+                    >
+                      <Spinner animation="border" size="sm" /> Test Daily Update
+                    </Button>
+                  ) : (
+                    <Button
+                      variant="primary"
+                      className="m-1"
+                      onClick={sendMail.bind(null, 'daily')}
+                      size="sm"
+                      disabled={isSendingMail}
+                    >
+                      Test Daily Update
+                    </Button>
+                  )}
                   <Button variant="primary" className="m-1" onClick={sendMail.bind(null, 'weekly')} size="sm" disabled>
                     Test Weekly Update
                   </Button>
