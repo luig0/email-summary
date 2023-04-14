@@ -124,10 +124,10 @@ export async function createUser(emailAddress: string, passwordHash: string): Pr
     try {
       await dao.run(
         `
-          INSERT INTO users (email_address, password_hash, date_created, date_modified)
-          VALUES (?, ?, ?, ?);
+          INSERT INTO users (email_address, password_hash, date_created, date_modified, is_daily, is_weekly, is_monthly)
+          VALUES (?, ?, ?, ?, ?, ?, ?);
         `,
-        [emailAddress, passwordHash, new Date().toISOString(), null]
+        [emailAddress, passwordHash, new Date().toISOString(), null, '0', '0', '0']
       );
     } catch (error: any) {
       console.log('Adapter.ts, createUser error:', error.message);
