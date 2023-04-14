@@ -18,4 +18,4 @@ jobs:
     steps:
     # Runs a single command using the runners shell
     - name: Send curl
-      run: "curl --header 'Authorization: Bearer ${{ secrets.EC2_SSH_KEY }}' --header 'Content-Type: application/json' https://mailer.jhcao.net/api/sendmail"
+      run: "curl -X POST --header 'Authorization: Bearer ${{ secrets.EC2_SSH_KEY }}' --header 'Content-Type: application/json' -d '{\"period\": \"daily\"}' https://mailer.jhcao.net/api/sendmail"
