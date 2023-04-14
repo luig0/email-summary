@@ -22,6 +22,14 @@ interface CheckAuthResponse {
   emailAddress: string | null;
 }
 
+const formatMoney = (num: number) =>
+  num.toLocaleString('en-US', {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  });
+
+const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+
 const checkAuth = async (req: NextApiRequest): Promise<CheckAuthResponse> => {
   if (req.headers['authorization']) {
     const authHeader = req.headers['authorization'];
@@ -72,11 +80,73 @@ const sortByEmailAndAccesToken = (subscriptionRecords: GetMailerDataResponse[]):
   return emailSubs;
 };
 
-const formatMoney = (num: number) =>
-  num.toLocaleString('en-US', {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  });
+const getTransactionsTables = async (
+  access_token: string,
+  institution: InstitutionRecord,
+  startDateString: string,
+  endDateString: string
+): Promise<string> => {
+  let emailBody = '';
+
+  emailBody += `<h2 style="margin-bottom: 1px;">${institution.institution_name}</h2>`;
+
+  for (const account_id of institution.account_ids) {
+    const request: TransactionsGetRequest = {
+      access_token: access_token,
+      start_date: startDateString,
+      end_date: endDateString,
+      options: {
+        account_ids: [account_id],
+      },
+    };
+
+    const response = await plaidClient.transactionsGet(request);
+
+    emailBody += `<h4 style="margin: 0px;">${response.data.accounts[0].name} (${response.data.accounts[0].mask})</h4>`;
+
+    if (response.data.transactions.length > 0) {
+      let txTotalNet = 0;
+      const accountBalance = response.data.accounts[0].balances.current;
+      const accountType = response.data.accounts[0].type;
+      const signFlipper = accountType === 'credit' ? 1 : -1;
+      emailBody += `
+        <table border="1" cellpadding="3" cellspacing="0" width="640">
+          <thead>
+            <tr style="background-color: #e6f2ff; font-weight: bold;">
+              <td>Date</td>
+              <td>Description</td>
+              <td>Amount</td>
+            </tr>
+          </thead>
+          <tbody>
+            ${response.data.transactions
+              .map((t, index) => {
+                txTotalNet += signFlipper * t.amount;
+                return `<tr bgcolor="${index % 2 === 0 ? '#fff' : '#f5f5f5'}"><td width="15%">${t.date}</td><td>${
+                  t.name
+                }</td><td width="15%" align="right">${formatMoney(signFlipper * t.amount)}</td></tr>`;
+              })
+              .join('')}
+            <tr style="font-weight: bold;">
+              <td>&nbsp;</td>
+              <td align="right">Net</td>
+              <td align="right">${formatMoney(txTotalNet)}</td>
+            </tr>
+            <tr style="font-style: italic;">
+              <td>&nbsp;</td>
+              <td align="right">Balance</td>
+              <td align="right">${accountBalance ? formatMoney(accountBalance) : 'unavailable'}</td>
+            </tr>
+          </tbody>
+        </table>
+        <br /><br />
+      `;
+    } else emailBody += '<p>No transactions.<br /><br /></p>';
+    await sleep(250);
+  }
+
+  return emailBody;
+};
 
 const sendDailyUpdate = async (sortedSubs: SortedSubscriptions): Promise<void> => {
   let to;
@@ -105,63 +175,8 @@ const sendDailyUpdate = async (sortedSubs: SortedSubscriptions): Promise<void> =
   for (const [email_address, user] of Object.entries(sortedSubs)) {
     to = email_address;
 
-    // TODO: parallelize the requests
     for (const [access_token, institution] of Object.entries(user)) {
-      emailBody += `<h2 style="margin-bottom: 1px;">${institution.institution_name}</h2>`;
-
-      for (const account_id of institution.account_ids) {
-        const request: TransactionsGetRequest = {
-          access_token: access_token,
-          start_date: startDateString,
-          end_date: endDateString,
-          options: {
-            account_ids: [account_id],
-          },
-        };
-
-        const response = await plaidClient.transactionsGet(request);
-
-        emailBody += `<h4 style="margin: 0px;">${response.data.accounts[0].name} (${response.data.accounts[0].mask})</h4>`;
-
-        if (response.data.transactions.length > 0) {
-          let txTotalNet = 0;
-          const accountBalance = response.data.accounts[0].balances.current;
-          const accountType = response.data.accounts[0].type;
-          const signFlipper = accountType === 'credit' ? 1 : -1;
-          emailBody += `
-            <table border="1" cellpadding="3" cellspacing="0" width="640">
-              <thead>
-                <tr style="background-color: #e6f2ff; font-weight: bold;">
-                  <td>Date</td>
-                  <td>Description</td>
-                  <td>Amount</td>
-                </tr>
-              </thead>
-              <tbody>
-                ${response.data.transactions
-                  .map((t, index) => {
-                    txTotalNet += signFlipper * t.amount;
-                    return `<tr bgcolor="${index % 2 === 0 ? '#fff' : '#f5f5f5'}"><td width="15%">${t.date}</td><td>${
-                      t.name
-                    }</td><td width="15%" align="right">${formatMoney(signFlipper * t.amount)}</td></tr>`;
-                  })
-                  .join('')}
-                <tr style="font-weight: bold;">
-                  <td>&nbsp;</td>
-                  <td align="right">Net</td>
-                  <td align="right">${formatMoney(txTotalNet)}</td>
-                </tr>
-                <tr style="font-style: italic;">
-                  <td>&nbsp;</td>
-                  <td align="right">Balance</td>
-                  <td align="right">${accountBalance ? formatMoney(accountBalance) : 'unavailable'}</td>
-                </tr>
-              </tbody>
-            </table>
-            <br /><br />
-          `;
-        } else emailBody += '<p>No transactions.<br /><br /></p>';
-      }
+      emailBody += await getTransactionsTables(access_token, institution, startDateString, endDateString);
     }
   }
 
