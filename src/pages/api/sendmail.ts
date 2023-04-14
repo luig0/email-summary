@@ -192,7 +192,18 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       let mailerData = auth.isCron ? await db.getMailerData() : await db.getMailerDataForUser(auth.emailAddress!);
 
       const sortedSubs = sortByEmailAndAccesToken(mailerData);
-      await sendDailyUpdate(sortedSubs);
+
+      const { period } = req.body;
+
+      switch (period) {
+        case 'daily':
+          await sendDailyUpdate(sortedSubs);
+          break;
+        case 'weekly':
+          break;
+        default:
+          return res.status(400).send(messages.BAD_REQUEST);
+      }
 
       res.status(200).send(messages.OK);
     } catch (error: any) {
