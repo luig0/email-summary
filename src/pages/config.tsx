@@ -61,9 +61,13 @@ const removeAccessToken = async (accessTokenUuid: string, fetchAccounts: () => v
 };
 
 const AccountsPanel = (props: AccountsPanelProps) => {
-  const sendMail = async () => {
+  const sendMail = async (period: string) => {
     setIsSendingMail(true);
-    await fetch('/api/sendmail', { method: 'POST' });
+    await fetch('/api/sendmail', {
+      method: 'POST',
+      body: JSON.stringify({ period }),
+      headers: { 'Content-Type': 'application/json' },
+    });
     setIsSendingMail(false);
   };
 
@@ -91,9 +95,20 @@ const AccountsPanel = (props: AccountsPanelProps) => {
             </td>
             <td className="text-end">
               {!isLoading && (
-                <Button variant="primary" className="m-1" onClick={sendMail} size="sm" disabled={isSendingMail}>
-                  Send test mail
-                </Button>
+                <>
+                  <Button
+                    variant="primary"
+                    className="m-1"
+                    onClick={sendMail.bind(null, 'daily')}
+                    size="sm"
+                    disabled={isSendingMail}
+                  >
+                    Test Daily Update
+                  </Button>
+                  <Button variant="primary" className="m-1" onClick={sendMail.bind(null, 'weekly')} size="sm" disabled>
+                    Test Weekly Update
+                  </Button>
+                </>
               )}
             </td>
           </tr>
