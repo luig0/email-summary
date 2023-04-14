@@ -76,7 +76,6 @@ const sortByEmailAndAccesToken = (subscriptionRecords: GetMailerDataResponse[]):
 
 const sendDailyUpdate = async (sortedSubs: SortedSubscriptions): Promise<void> => {
   let to;
-  let emailBody = '';
 
   const date = new Date();
   date.setDate(date.getDate() - 1);
@@ -85,12 +84,20 @@ const sendDailyUpdate = async (sortedSubs: SortedSubscriptions): Promise<void> =
     .toString()
     .padStart(2, '0')}`;
 
+  let emailBody = `
+    <h1 style="margin-bottom: 1px;">Daily Financial Summary</h1>
+    <div style="margin: 0px; font-style: italic; color: #606060">
+      Summary of transactions dated ${dateString}.
+      <br />Provided by mailer.jhcao.net. Log in to change your preferences.
+    </div>
+  `;
+
   for (const [email_address, user] of Object.entries(sortedSubs)) {
     to = email_address;
 
     // TODO: parallelize the requests
     for (const [access_token, institution] of Object.entries(user)) {
-      emailBody += `<br>${institution.institution_name}`;
+      emailBody += `<h2 style="margin-bottom: 1px;">${institution.institution_name}</h2>`;
 
       for (const account_id of institution.account_ids) {
         const request: TransactionsGetRequest = {
@@ -104,25 +111,37 @@ const sendDailyUpdate = async (sortedSubs: SortedSubscriptions): Promise<void> =
 
         const response = await plaidClient.transactionsGet(request);
 
-        emailBody += `<br>${response.data.accounts[0].name} (${response.data.accounts[0].mask})`;
+        emailBody += `<h4 style="margin: 0px;">${response.data.accounts[0].name} (${response.data.accounts[0].mask})</h4>`;
 
-        if (response.data.transactions.length > 0)
+        if (response.data.transactions.length > 0) {
+          let txTotalNet = 0;
           emailBody += `
-            <table border="1">
+            <table border="1" cellpadding="3" cellspacing="0" width="640">
               <tbody>
-                ${response.data.transactions.map(
-                  (t) => `<tr><td>${t.date}</td><td>${t.name}</td><td>${t.amount.toFixed(2)}</td></tr>`
-                )}
+                ${response.data.transactions
+                  .map((t, index) => {
+                    txTotalNet += t.amount;
+                    return `<tr bgcolor="${index % 2 === 0 ? '#fff' : '#f5f5f5'}"><td width="20%">${t.date}</td><td>${
+                      t.name
+                    }</td><td width="15%" align="right">${t.amount.toFixed(2)}</td></tr>`;
+                  })
+                  .join('')}
+                <tr>
+                  <td>&nbsp;</td>
+                  <td align="right"><b>Net</b></td>
+                  <td align="right"><b>${txTotalNet.toFixed(2)}</b></td>
+                </tr>
               </tbody>
             </table>
+            <br /><br />
           `;
-        else emailBody += '<div>No transactions found</div>';
+        } else emailBody += '<p>No transactions.<br /><br /></p>';
       }
     }
   }
 
   if (to && emailBody) {
-    await sendMail(to, 'test cron job', emailBody);
+    await sendMail(to, `Daily Financial Summary, ${dateString}`, emailBody);
   }
 };
 
