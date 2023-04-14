@@ -1,5 +1,3 @@
-import util from 'util';
-
 import type { NextApiRequest, NextApiResponse } from 'next';
 import type { TransactionsGetRequest } from 'plaid';
 
@@ -74,12 +72,24 @@ const sortByEmailAndAccesToken = (subscriptionRecords: GetMailerDataResponse[]):
   return emailSubs;
 };
 
+const formatMoney = (num: number) =>
+  num.toLocaleString('en-US', {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  });
+
 const sendDailyUpdate = async (sortedSubs: SortedSubscriptions): Promise<void> => {
   let to;
 
-  const date = new Date();
-  date.setDate(date.getDate() - 1);
-  const dateString = `${date.getFullYear()}-${(date.getMonth() + 1).toString().padStart(2, '0')}-${date
+  const startDate = new Date();
+  startDate.setDate(startDate.getDate() - 1);
+  const startDateString = `${startDate.getFullYear()}-${(startDate.getMonth() + 1)
+    .toString()
+    .padStart(2, '0')}-${startDate.getDate().toString().padStart(2, '0')}`;
+
+  const endDate = new Date();
+  endDate.setDate(endDate.getDate() - 1);
+  const endDateString = `${endDate.getFullYear()}-${(endDate.getMonth() + 1).toString().padStart(2, '0')}-${endDate
     .getDate()
     .toString()
     .padStart(2, '0')}`;
@@ -87,7 +97,7 @@ const sendDailyUpdate = async (sortedSubs: SortedSubscriptions): Promise<void> =
   let emailBody = `
     <h1 style="margin-bottom: 1px;">Daily Financial Summary</h1>
     <div style="margin: 0px; font-style: italic; color: #606060">
-      Summary of transactions dated ${dateString}.
+      Summary of transactions dated ${endDateString}.
       <br />Provided by mailer.jhcao.net. Log in to change your preferences.
     </div>
   `;
@@ -102,8 +112,8 @@ const sendDailyUpdate = async (sortedSubs: SortedSubscriptions): Promise<void> =
       for (const account_id of institution.account_ids) {
         const request: TransactionsGetRequest = {
           access_token: access_token,
-          start_date: dateString,
-          end_date: dateString,
+          start_date: startDateString,
+          end_date: endDateString,
           options: {
             account_ids: [account_id],
           },
@@ -115,21 +125,36 @@ const sendDailyUpdate = async (sortedSubs: SortedSubscriptions): Promise<void> =
 
         if (response.data.transactions.length > 0) {
           let txTotalNet = 0;
+          const accountBalance = response.data.accounts[0].balances.current;
+          const accountType = response.data.accounts[0].type;
+          const signFlipper = accountType === 'credit' ? 1 : -1;
           emailBody += `
             <table border="1" cellpadding="3" cellspacing="0" width="640">
+              <thead>
+                <tr style="background-color: #e6f2ff; font-weight: bold;">
+                  <td>Date</td>
+                  <td>Description</td>
+                  <td>Amount</td>
+                </tr>
+              </thead>
               <tbody>
                 ${response.data.transactions
                   .map((t, index) => {
-                    txTotalNet += t.amount;
-                    return `<tr bgcolor="${index % 2 === 0 ? '#fff' : '#f5f5f5'}"><td width="20%">${t.date}</td><td>${
+                    txTotalNet += signFlipper * t.amount;
+                    return `<tr bgcolor="${index % 2 === 0 ? '#fff' : '#f5f5f5'}"><td width="15%">${t.date}</td><td>${
                       t.name
-                    }</td><td width="15%" align="right">${t.amount.toFixed(2)}</td></tr>`;
+                    }</td><td width="15%" align="right">${formatMoney(signFlipper * t.amount)}</td></tr>`;
                   })
                   .join('')}
-                <tr>
+                <tr style="font-weight: bold;">
                   <td>&nbsp;</td>
-                  <td align="right"><b>Net</b></td>
-                  <td align="right"><b>${txTotalNet.toFixed(2)}</b></td>
+                  <td align="right">Net</td>
+                  <td align="right">${formatMoney(txTotalNet)}</td>
+                </tr>
+                <tr style="font-style: italic;">
+                  <td>&nbsp;</td>
+                  <td align="right">Balance</td>
+                  <td align="right">${accountBalance ? formatMoney(accountBalance) : 'unavailable'}</td>
                 </tr>
               </tbody>
             </table>
@@ -141,7 +166,7 @@ const sendDailyUpdate = async (sortedSubs: SortedSubscriptions): Promise<void> =
   }
 
   if (to && emailBody) {
-    await sendMail(to, `Daily Financial Summary, ${dateString}`, emailBody);
+    await sendMail(to, `Daily Financial Summary, ${endDateString}`, emailBody);
   }
 };
 

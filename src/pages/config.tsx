@@ -60,17 +60,20 @@ const removeAccessToken = async (accessTokenUuid: string, fetchAccounts: () => v
   if (fetchResult.ok) await fetchAccounts();
 };
 
-const sendMail = async () => {
-  await fetch('/api/sendmail', { method: 'POST' });
-};
-
 const AccountsPanel = (props: AccountsPanelProps) => {
+  const sendMail = async () => {
+    setIsSendingMail(true);
+    await fetch('/api/sendmail', { method: 'POST' });
+    setIsSendingMail(false);
+  };
+
   useEffect(() => {
     setAccountData(props.data);
   }, [props.data]);
 
   const { isLoading, fetchAccounts } = props;
   const [accountData, setAccountData] = useState(props.data);
+  const [isSendingMail, setIsSendingMail] = useState(false);
 
   return (
     <>
@@ -88,7 +91,7 @@ const AccountsPanel = (props: AccountsPanelProps) => {
             </td>
             <td className="text-end">
               {!isLoading && (
-                <Button variant="primary" className="m-1" onClick={sendMail} size="sm">
+                <Button variant="primary" className="m-1" onClick={sendMail} size="sm" disabled={isSendingMail}>
                   Send test mail
                 </Button>
               )}
