@@ -123,7 +123,7 @@ const AccountsPanel = (props: AccountsPanelProps) => {
                       return (
                         <tr key={`acc-${insIndex}-${accIndex}`}>
                           <td className="ps-5 align-middle" colSpan={2}>
-                            {acc.official_name} ({acc.mask})
+                            {acc.name} ({acc.mask})
                           </td>
                         </tr>
                       );

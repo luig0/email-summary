@@ -104,7 +104,7 @@ const sendDailyUpdate = async (sortedSubs: SortedSubscriptions): Promise<void> =
 
         const response = await plaidClient.transactionsGet(request);
 
-        emailBody += `<br>${response.data.accounts[0].official_name} (${response.data.accounts[0].mask})`;
+        emailBody += `<br>${response.data.accounts[0].name} (${response.data.accounts[0].mask})`;
 
         if (response.data.transactions.length > 0)
           emailBody += `
