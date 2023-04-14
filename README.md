@@ -1,3 +1,47 @@
+# Financial Summary Mailer
+
+This application uses GitHub Actions to trigger a cron job which sends email updates on a pre-defined periodic basis.
+
+It is deployed on EC2 and managed by PM2.
+
+## To make changes
+- Create a new branch and submit changes via pull request
+- There is a GitHub Action which builds the code and copies it to the EC2 instance. In order for this to work properly, the GitHub respository must have the following secrets configured:
+  - `USERNAME`: the EC2 instance's username
+  - `TARGET_DIR`: the directory on the EC2 instance where the build should be scp'd to
+  - `HOST_DNS`: the publicly accessible IP/DNS address of the EC2 instance
+  - `EC2_SSH_KEY`: the private key required for using SSH with the EC2 instance
+- Once the build has been transferred to EC2, SSH into the EC2 instance and restart the application:
+  - `pm2 restart email-summary`
+
+The application uses GitHub Actions as a cron job to send curl requests to the server, which in turn triggers the daily/weekly/monthly mailer. In order for this to work , the GitHub repository must have the following secret configured:
+  - `MAILER_TOKEN`: this is a unique string which is stored in the server's environment variables. It must match process.env.BEARER_TOKEN
+
+## Start a new instance of the application in pm2 (TODO: script this with a pm2 config):
+```
+cd /home/ubuntu/email-summary/
+pm2 start npm --time --name "email-summary" -- start
+```
+
+## Test a local build in prod without committing to the repository
+```
+# connect to EC2 and delete the existin build
+ssh jhcao.net
+rm -rf /home/ubuntu/email-summary/.next
+exit
+
+# compress the .next directory, send it to EC2, and then extract on the server
+# this is faster than scp'ing individual files
+tar czf - .next/ | ssh jhcao.net "cd /home/ubuntu/email-summary/ && tar xvzf -"
+
+# connect to EC2 and restart the pm2 app
+ssh jhcao.net
+pm2 restart email-summary
+exit
+```
+
+# Next.js Boilerplate Readme
+
 This is a [Next.js](https://nextjs.org/) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
 
 ## Getting Started
@@ -30,9 +74,3 @@ To learn more about Next.js, take a look at the following resources:
 - [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
 
 You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js/) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/deployment) for more details.
