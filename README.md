@@ -6,6 +6,12 @@ It is deployed on EC2 and managed by PM2.
 
 The EC2 server uses nginx to manage the two discrete applications running at jhcao.net. The docker config files are here to mirror the EC2 prod config, enabling testing of the rate limiter functionality.
 
+## Quickstart (TODO)
+
+```
+cp sample.env.local .env.local # fill in values for the needed environment variables
+```
+
 ## To make changes
 - Create a new branch and submit changes via pull request
 - There is a GitHub Action which builds the code and copies it to the EC2 instance. In order for this to work properly, the GitHub respository must have the following secrets configured:
