@@ -6,7 +6,9 @@ const DB_NAME = process.env.DB_NAME || 'emailsummary.db';
 const DB_DIR = path.resolve(process.cwd(), 'database');
 const DB_PATH = path.resolve(process.cwd(), 'database', DB_NAME);
 
-if (!fs.existsSync(DB_DIR)) {
+if (process.env.PLAID_CLIENT_ID && !fs.existsSync(DB_DIR)) {
+  // only create this directory if process.env.PLAID_CLIENT_ID is set
+  // this prevents the GitHub Actions builder from creating a new database file and overwriting the existing prod db
   fs.mkdirSync(DB_DIR, { recursive: true });
 }
 
