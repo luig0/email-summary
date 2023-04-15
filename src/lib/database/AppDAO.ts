@@ -1,8 +1,14 @@
+import fs from 'fs';
 import path from 'path';
 import sqlite3 from 'sqlite3';
 
 const DB_NAME = process.env.DB_NAME || 'emailsummary.db';
+const DB_DIR = path.resolve(process.cwd(), 'database');
 const DB_PATH = path.resolve(process.cwd(), 'database', DB_NAME);
+
+if (!fs.existsSync(DB_DIR)) {
+  fs.mkdirSync(DB_DIR, { recursive: true });
+}
 
 const db = new sqlite3.Database(DB_PATH, async (err) => {
   if (err) {
