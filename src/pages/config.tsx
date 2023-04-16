@@ -50,11 +50,6 @@ export const getServerSideProps: GetServerSideProps = async ({ req }) => {
   }
 };
 
-const getTransactions = async (accessToken: string) => {
-  const fetchResult = await fetch(`/api/transactions?access_token=${accessToken}`);
-  console.log(await fetchResult.json());
-};
-
 const removeAccessToken = async (accessTokenUuid: string, fetchAccounts: () => void) => {
   const fetchResult = await fetch(`/api/access_token?uuid=${accessTokenUuid}`, { method: 'DELETE' });
   if (fetchResult.ok) await fetchAccounts();
