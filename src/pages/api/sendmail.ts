@@ -104,12 +104,11 @@ const getTransactionsTables = async (
 
     emailBody += `<h4 style="margin: 0px;">${response.data.accounts[0].name} (${response.data.accounts[0].mask})</h4>`;
 
-    if (response.data.transactions.length > 0) {
-      let txTotalNet = 0;
-      const accountBalance = response.data.accounts[0].balances.current;
-      const accountType = response.data.accounts[0].type;
-      const signFlipper = accountType === 'credit' ? 1 : -1;
-      emailBody += `
+    let txTotalNet = 0;
+    const accountBalance = response.data.accounts[0].balances.current;
+    const accountType = response.data.accounts[0].type;
+    const signFlipper = accountType === 'credit' ? 1 : -1;
+    emailBody += `
         <table border="1" cellpadding="3" cellspacing="0" width="640">
           <thead>
             <tr style="background-color: #e6f2ff; font-weight: bold;">
@@ -119,29 +118,50 @@ const getTransactionsTables = async (
             </tr>
           </thead>
           <tbody>
-            ${response.data.transactions
-              .map((t, index) => {
-                txTotalNet += signFlipper * t.amount;
-                return `<tr bgcolor="${index % 2 === 0 ? '#fff' : '#f5f5f5'}"><td width="15%">${t.date}</td><td>${
-                  t.name
-                }</td><td width="15%" align="right">${formatMoney(signFlipper * t.amount)}</td></tr>`;
-              })
-              .join('')}
-            <tr style="font-weight: bold;">
-              <td>&nbsp;</td>
-              <td align="right">Net</td>
-              <td align="right">${formatMoney(txTotalNet)}</td>
-            </tr>
-            <tr style="font-style: italic;">
-              <td>&nbsp;</td>
-              <td align="right">Balance</td>
-              <td align="right">${accountBalance ? formatMoney(accountBalance) : 'unavailable'}</td>
-            </tr>
+            ${
+              response.data.transactions.length > 0
+                ? response.data.transactions
+                    .map((t, index) => {
+                      txTotalNet += signFlipper * t.amount;
+                      return `
+                        <tr ${index % 2 === 1 ? 'bgcolor="#f5f5f5"' : ''}>
+                          <td width="15%">${t.date}</td>
+                          <td>${t.name}</td>
+                          <td width="15%" align="right">${formatMoney(signFlipper * t.amount)}</td>
+                        </tr>`;
+                    })
+                    .join('')
+                : `
+                    <tr>
+                      <td colspan="3" align="center">No transactions.</td>
+                    </tr>
+                `
+            }
+            ${
+              response.data.transactions.length > 0
+                ? `
+                <tr style="font-weight: bold;">
+                  <td>&nbsp;</td>
+                  <td align="right">Net</td>
+                  <td align="right">${formatMoney(txTotalNet)}</td>
+                </tr>
+              `
+                : ''
+            }
           </tbody>
+        </table>
+        <table border="0" cellpadding="3" cellspacing="0" width="640">
+              <tbody>
+                <tr>
+                  <td align="right" style="font-weight: bold;">Balance ${
+                    accountBalance ? formatMoney(accountBalance) : 'unavailable'
+                  }</td>
+                </tr>
+              </tbody>
         </table>
         <br /><br />
       `;
-    } else emailBody += '<p>No transactions.<br /><br /></p>';
+
     await sleep(250);
   }
 
