@@ -40,6 +40,7 @@ exit
 
 # compress the .next directory, send it to EC2, and then extract on the server
 # this is faster than scp'ing individual files
+npm run build
 tar czf - .next/ | ssh jhcao.net "cd /home/ubuntu/email-summary/ && tar xvzf -"
 
 # connect to EC2 and restart the pm2 app
