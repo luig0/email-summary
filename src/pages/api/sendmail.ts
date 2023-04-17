@@ -105,7 +105,7 @@ const getTransactionsTables = async (
     emailBody += `<h4 style="margin: 0px;">${response.data.accounts[0].name} (${response.data.accounts[0].mask})</h4>`;
 
     let txTotalNet = 0;
-    const accountBalance = response.data.accounts[0].balances.current;
+    const accountBalance = response.data.accounts[0].balances.current ?? response.data.accounts[0].balances.available;
     const accountType = response.data.accounts[0].type;
     const signFlipper = accountType === 'credit' ? 1 : -1;
     emailBody += `
