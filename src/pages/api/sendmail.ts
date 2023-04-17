@@ -1,5 +1,5 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
-import type { TransactionsGetRequest } from 'plaid';
+import type { Transaction, TransactionsGetRequest } from 'plaid';
 
 import * as db from '@/lib/database/Adapter';
 import type { GetMailerDataResponse } from '@/lib/database/Adapter';
@@ -86,6 +86,54 @@ const getTransactionsTables = async (
   startDateString: string,
   endDateString: string
 ): Promise<string> => {
+  const makeTable = (headers: string[], transactions: Transaction[], signFlipper: number) => {
+    let txTotalNet = 0;
+
+    if (transactions.length === 0) return '<div>No transactions.</div>'
+
+    return `
+      <table border="1" cellpadding="3" cellspacing="0" width="640">
+        <thead>
+          <tr style="background-color: #e6f2ff; font-weight: bold;">
+            ${headers.map((header) => `<td>${header}</td>`).join('')}
+          </tr>
+        </thead>
+        <tbody>
+          ${
+            transactions.length > 0
+              ? transactions
+                  .map((t, index) => {
+                    txTotalNet += signFlipper * t.amount;
+                    return `
+                      <tr ${index % 2 === 1 ? 'bgcolor="#f5f5f5"' : ''}>
+                        <td width="15%">${t.date}</td>
+                        <td>${t.pending ? '(<i>Pending</i>) ' : ''}${t.name}</td>
+                        <td width="15%" align="right">${formatMoney(signFlipper * t.amount)}</td>
+                      </tr>`;
+                  })
+                  .join('')
+              : `
+                  <tr>
+                    <td colspan="3" align="center">No transactions.</td>
+                  </tr>
+              `
+          }
+          ${
+            transactions.length > 0
+              ? `
+              <tr style="font-weight: bold;">
+                <td>&nbsp;</td>
+                <td align="right">Net</td>
+                <td align="right">${formatMoney(txTotalNet)}</td>
+              </tr>
+            `
+              : ''
+          }
+        </tbody>
+      </table>
+  `;
+  };
+
   let emailBody = '';
 
   emailBody += `<h2 style="margin-bottom: 1px;">${institution.institution_name}</h2>`;
@@ -102,72 +150,50 @@ const getTransactionsTables = async (
 
     const response = await plaidClient.transactionsGet(request);
 
-    emailBody += `<h4 style="margin: 0px;">${response.data.accounts[0].name} (${response.data.accounts[0].mask})</h4>`;
+    emailBody += `<h4 style="margin: 0px;"></h4>`;
 
-    if (response.data.transactions.length > 0) {
-      let txTotalNet = 0;
-      const accountBalance = response.data.accounts[0].balances.current;
-      const accountType = response.data.accounts[0].type;
-      const signFlipper = accountType === 'credit' ? 1 : -1;
-      emailBody += `
-        <table border="1" cellpadding="3" cellspacing="0" width="640">
-          <thead>
-            <tr style="background-color: #e6f2ff; font-weight: bold;">
-              <td>Date</td>
-              <td>Description</td>
-              <td>Amount</td>
-            </tr>
-          </thead>
-          <tbody>
-            ${response.data.transactions
-              .map((t, index) => {
-                txTotalNet += signFlipper * t.amount;
-                return `<tr bgcolor="${index % 2 === 0 ? '#fff' : '#f5f5f5'}"><td width="15%">${t.date}</td><td>${
-                  t.name
-                }</td><td width="15%" align="right">${formatMoney(signFlipper * t.amount)}</td></tr>`;
-              })
-              .join('')}
-            <tr style="font-weight: bold;">
-              <td>&nbsp;</td>
-              <td align="right">Net</td>
-              <td align="right">${formatMoney(txTotalNet)}</td>
-            </tr>
-            <tr style="font-style: italic;">
-              <td>&nbsp;</td>
-              <td align="right">Balance</td>
-              <td align="right">${accountBalance ? formatMoney(accountBalance) : 'unavailable'}</td>
-            </tr>
-          </tbody>
-        </table>
-        <br /><br />
-      `;
-    } else emailBody += '<p>No transactions.<br /><br /></p>';
+    const accountBalance = response.data.accounts[0].balances.current ?? response.data.accounts[0].balances.available;
+    const accountType = response.data.accounts[0].type;
+    const signFlipper = accountType === 'credit' ? 1 : -1;
+    emailBody += `
+      <table border="0" cellpadding="3" cellspacing="0" width="640">
+        <tbody>
+          <tr>
+            <td align="left" style="font-weight: bold;">
+              ${response.data.accounts[0].name} (${response.data.accounts[0].mask})
+            </td>
+            <td align="right" style="font-weight: bold;">
+              Balance: ${accountBalance !== null ? formatMoney(accountBalance) : 'Unavailable'}
+            </td>
+          </tr>
+        </tbody>
+      </table>
+      ${makeTable(['Date', 'Description', 'Amount'], response.data.transactions, signFlipper)}
+      <br /><br />
+    `;
+
     await sleep(250);
   }
 
   return emailBody;
 };
 
-const sendDailyUpdate = async (sortedSubs: SortedSubscriptions): Promise<void> => {
+const sendDailyUpdate = async (sortedSubs: SortedSubscriptions, dateString: string | undefined): Promise<void> => {
   let to;
 
-  const startDate = new Date();
-  startDate.setDate(startDate.getDate() - 1);
-  const startDateString = `${startDate.getFullYear()}-${(startDate.getMonth() + 1)
-    .toString()
-    .padStart(2, '0')}-${startDate.getDate().toString().padStart(2, '0')}`;
-
-  const endDate = new Date();
-  endDate.setDate(endDate.getDate() - 1);
-  const endDateString = `${endDate.getFullYear()}-${(endDate.getMonth() + 1).toString().padStart(2, '0')}-${endDate
-    .getDate()
-    .toString()
-    .padStart(2, '0')}`;
+  if (dateString === undefined) {
+    const date = new Date();
+    date.setDate(date.getDate() - 1);
+    dateString = `${date.getFullYear()}-${(date.getMonth() + 1).toString().padStart(2, '0')}-${date
+      .getDate()
+      .toString()
+      .padStart(2, '0')}`;
+  }
 
   let emailBody = `
     <h1 style="margin-bottom: 1px;">Daily Financial Summary</h1>
     <div style="margin: 0px; font-style: italic; color: #606060">
-      Summary of transactions dated ${endDateString}.
+      Summary of transactions dated ${dateString}.
       <br />Provided by mailer.jhcao.net. Log in to change your preferences.
     </div>
   `;
@@ -176,12 +202,12 @@ const sendDailyUpdate = async (sortedSubs: SortedSubscriptions): Promise<void> =
     to = email_address;
 
     for (const [access_token, institution] of Object.entries(user)) {
-      emailBody += await getTransactionsTables(access_token, institution, startDateString, endDateString);
+      emailBody += await getTransactionsTables(access_token, institution, dateString, dateString);
     }
   }
 
   if (to && emailBody) {
-    await sendMail(to, `Daily Financial Summary, ${endDateString}`, emailBody);
+    await sendMail(to, `Daily Financial Summary, ${dateString}`, emailBody);
   }
 };
 
@@ -193,11 +219,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
       const sortedSubs = sortByEmailAndAccesToken(mailerData);
 
-      const { period } = req.body;
+      const { period, dateString } = req.body;
 
       switch (period) {
         case 'daily':
-          await sendDailyUpdate(sortedSubs);
+          await sendDailyUpdate(sortedSubs, dateString);
           break;
         case 'weekly':
           break;
