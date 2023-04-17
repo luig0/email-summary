@@ -58,11 +58,20 @@ const removeAccessToken = async (accessTokenUuid: string, fetchAccounts: () => v
 const AccountsPanel = (props: AccountsPanelProps) => {
   const sendMail = async (period: string) => {
     setIsSendingMail(true);
+
+    const date = new Date();
+    date.setDate(date.getDate() - 1);
+    const dateString = `${date.getFullYear()}-${(date.getMonth() + 1).toString().padStart(2, '0')}-${date
+      .getDate()
+      .toString()
+      .padStart(2, '0')}`;
+
     await fetch('/api/sendmail', {
       method: 'POST',
-      body: JSON.stringify({ period }),
+      body: JSON.stringify({ period, dateString }),
       headers: { 'Content-Type': 'application/json' },
     });
+
     setIsSendingMail(false);
   };
 
