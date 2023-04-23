@@ -1,12 +1,20 @@
 # Financial Summary Mailer
 
-This application uses GitHub Actions to trigger a cron job which sends email updates on a pre-defined periodic basis.
+## Welcome note to visitors
 
-It is deployed on EC2 and managed by PM2.
+I have temporary made this repository public to showcase my work. I am currently seeking employment and can be reached at jhcao.g1@gmail.com.
 
-The EC2 server uses nginx to manage the two discrete applications running at jhcao.net. The docker config files are here to mirror the EC2 prod config, enabling testing of the rate limiter functionality.
+Visit me on LinkedIn: [linkedin.com/in/jhcao](https://linkedin.com/in/jhcao)
 
-## Quickstart (TODO)
+This application uses the Plaid API to connect to the user's financial accounts and provide a daily email summary of the previous day's transactions. I use it to monitor my accounts for fraudulent transactions and to keep track of my spending. I plan to extend the functionality to provide weekly and monthly summaries.
+
+I am using GitHub Actions as a cron job to execute the "send email" endpoint once per day.
+
+The app is deployed on EC2 and managed by PM2.
+
+The EC2 server uses nginx to manage routing to two discrete applications. The docker config files are here to mirror the EC2 prod config, enabling testing of the rate limiter functionality.
+
+## Quickstart
 
 ```
 cp sample.env.local .env.local # fill in values for the needed environment variables
@@ -28,7 +36,7 @@ The application uses GitHub Actions as a cron job to send curl requests to the s
 ## Start a new instance of the application in pm2 (TODO: script this with a pm2 config):
 ```
 cd /home/ubuntu/email-summary/
-pm2 start npm --time --name "email-summary" -- start
+pm2 start emailsummary.pm2.config.js
 ```
 
 ## Test a local build in prod without committing to the repository
