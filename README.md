@@ -2,11 +2,11 @@
 
 ## Welcome note to visitors
 
-I have temporary made this repository public to showcase my work. I am currently seeking employment and can be reached at jhcao.g1@gmail.com.
+I have temporarily made this repository public to showcase my work. I am currently seeking employment and can be reached at jhcao.g1@gmail.com.
 
 Visit me on LinkedIn: [linkedin.com/in/jhcao](https://linkedin.com/in/jhcao)
 
-This application uses the Plaid API to connect to the user's financial accounts and provide a daily email summary of the previous day's transactions. I use it to monitor my accounts for fraudulent transactions and to keep track of my spending. I plan to extend the functionality to provide weekly and monthly summaries.
+This application uses the Plaid API to connect to the user's financial accounts and provide a daily email summary of the previous day's transactions. I use it to monitor my accounts for fraudulent transactions and to keep track of my spending. I plan to extend the functionality to provide weekly and monthly summaries. Registration is not open to the public.
 
 I am using GitHub Actions as a cron job to execute the "send email" endpoint once per day.
 
