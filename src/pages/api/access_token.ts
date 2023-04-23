@@ -1,15 +1,16 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
+import type { ItemRemoveRequest } from 'plaid';
 
 import * as db from '@/lib/database/Adapter';
 import * as messages from '@/lib/Messages';
-import client from '@/lib/PlaidApiClient';
+import plaidClient from '@/lib/PlaidApiClient';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method === 'POST') {
     const publicToken = req.body.public_token;
 
     try {
-      const plaidResponse = await client.itemPublicTokenExchange({
+      const plaidResponse = await plaidClient.itemPublicTokenExchange({
         public_token: publicToken,
       });
 
@@ -32,10 +33,15 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const accessTokenUuid = req.query.uuid as string;
 
     try {
+      const { access_token: accessToken } = await db.getAccessTokenByUuid(accessTokenUuid);
+      const request: ItemRemoveRequest = { access_token: accessToken };
+      await plaidClient.itemRemove(request);
+
       await db.deleteAccounts(accessTokenUuid);
-      await db.deleteAccessToken(accessTokenUuid);
+      await db.disableAccessToken(accessTokenUuid);
       res.status(204).send('');
-    } catch (error) {
+    } catch (error: any) {
+      console.log(`DELETE /api/access_token error:`, error.message);
       res.status(500).send(messages.INTERNAL_SERVER_ERROR);
     }
   } else {

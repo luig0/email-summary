@@ -224,13 +224,14 @@ export async function createAccessToken(emailAddress: string, accessToken: strin
   try {
     await dao.run(
       `
-        INSERT INTO access_tokens (user_id, uuid, access_token, item_id, date_created)
+        INSERT INTO access_tokens (user_id, uuid, access_token, item_id, date_created, is_active)
         VALUES (
           (SELECT id FROM users WHERE email_address=?),
           ?,
           ?,
           ?,
-          ?
+          ?,
+          1
         );
     `,
       [emailAddress, uuid, accessToken, itemId, new Date().toISOString()]
@@ -247,7 +248,7 @@ export async function getAccessTokens(emailAddress: string): Promise<AccessToken
       `
         SELECT uuid, access_token, item_id, date_created 
         FROM access_tokens 
-        WHERE user_id=(SELECT id FROM users WHERE email_address=?)
+        WHERE user_id=(SELECT id FROM users WHERE email_address=?) AND is_active = 1
       `,
       [emailAddress]
     );
@@ -257,9 +258,18 @@ export async function getAccessTokens(emailAddress: string): Promise<AccessToken
   }
 }
 
-export async function deleteAccessToken(uuid: string): Promise<void> {
+export async function getAccessTokenByUuid(uuid: string): Promise<{ [key: string]: string }> {
   try {
-    await dao.run(`DELETE FROM access_tokens WHERE uuid=?`, [uuid]);
+    return await dao.get(`SELECT access_token FROM access_tokens WHERE uuid=?`, [uuid]);
+  } catch (error: any) {
+    console.log('Adapter.ts, getAccessTokenByUuid error:', error.message);
+    throw new Error(error.message);
+  }
+}
+
+export async function disableAccessToken(uuid: string): Promise<void> {
+  try {
+    await dao.run(`UPDATE access_tokens SET is_active = 0 WHERE uuid=?`, [uuid]);
   } catch (error: any) {
     console.log('Adapter.ts, deleteAccessToken error:', error.message);
     throw new Error(error.message);
@@ -393,6 +403,7 @@ export async function getMailerData(): Promise<GetMailerDataResponse[]> {
       LEFT JOIN access_tokens ON accounts.access_token_id = access_tokens.id
       LEFT JOIN institutions ON accounts.institution_id = institutions.id
       LEFT JOIN users ON access_tokens.user_id = users.id
+      WHERE access_tokens.is_active = 1
       ORDER BY email_address, institution_name;
     `);
   } catch (error: any) {
@@ -414,7 +425,7 @@ export async function getMailerDataForUser(emailAddress: string) {
       LEFT JOIN access_tokens ON accounts.access_token_id = access_tokens.id
       LEFT JOIN institutions ON accounts.institution_id = institutions.id
       LEFT JOIN users ON access_tokens.user_id = users.id
-        WHERE users.email_address = ?
+      WHERE users.email_address = ? AND access_tokens.is_active = 1
       ORDER BY email_address, institution_name;
     `,
       [emailAddress]

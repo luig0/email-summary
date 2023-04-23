@@ -55,6 +55,7 @@ const db = new sqlite3.Database(DB_PATH, async (err) => {
         access_token TEXT NOT NULL,
         item_id TEXT NOT NULL,
         date_created TEXT NOT NULL,
+        is_active INTEGER NOT NULL,
         FOREIGN KEY (user_id) REFERENCES users(id)
       );
     `;
