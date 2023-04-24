@@ -59,6 +59,8 @@ The app is deployed on EC2 and managed by PM2.
 
 The EC2 server uses nginx to manage routing to two discrete applications. The docker config files are here to mirror the EC2 prod config, enabling testing of the rate limiter functionality.
 
+The application stores its data in a local SQLite database file at ./database/emailsummary.db.
+
 # Next.js Boilerplate Readme
 
 This is a [Next.js](https://nextjs.org/) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
