@@ -28,6 +28,7 @@ cp sample.env.local .env.local # fill in values for the needed environment varia
 
 The application uses GitHub Actions as a cron job to send curl requests to the server, which in turn triggers the daily/weekly/monthly mailer. In order for this to work , the GitHub repository must have the following secret configured:
   - `MAILER_TOKEN`: this is a unique string which is stored in the server's environment variables. It must match process.env.BEARER_TOKEN
+  - `SENDMAIL_API_URL`: this is the API url for the mailer endpoint
 
 ## Start a new instance of the application in pm2:
 ```
