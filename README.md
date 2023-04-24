@@ -2,17 +2,13 @@
 
 ## Welcome note to visitors
 
-I have temporarily made this repository public to showcase my work. I am currently seeking employment and can be reached at jhcao.g1@gmail.com.
+Welcome! I have temporarily made this repository public to showcase my work. I am currently seeking employment opportunities and can be reached at jhcao.g1@gmail.com.
 
 Visit me on LinkedIn: [linkedin.com/in/jhcao](https://linkedin.com/in/jhcao)
 
 This application uses the Plaid API to connect to the user's financial accounts and provide a daily email summary of the previous day's transactions. I use it to monitor my accounts for fraudulent transactions and to keep track of my spending. I plan to extend the functionality to provide weekly and monthly summaries. Registration is not open to the public.
 
-I am using GitHub Actions as a cron job to execute the "send email" endpoint once per day.
-
-The app is deployed on EC2 and managed by PM2.
-
-The EC2 server uses nginx to manage routing to two discrete applications. The docker config files are here to mirror the EC2 prod config, enabling testing of the rate limiter functionality.
+This README primarily serves as a refresher to myself to make it easier to add functionality after a development hiatus.
 
 ## Quickstart
 
@@ -33,7 +29,7 @@ cp sample.env.local .env.local # fill in values for the needed environment varia
 The application uses GitHub Actions as a cron job to send curl requests to the server, which in turn triggers the daily/weekly/monthly mailer. In order for this to work , the GitHub repository must have the following secret configured:
   - `MAILER_TOKEN`: this is a unique string which is stored in the server's environment variables. It must match process.env.BEARER_TOKEN
 
-## Start a new instance of the application in pm2 (TODO: script this with a pm2 config):
+## Start a new instance of the application in pm2:
 ```
 cd /home/ubuntu/email-summary/
 pm2 start emailsummary.pm2.config.js
@@ -53,9 +49,15 @@ tar czf - .next/ | ssh jhcao.net "cd /home/ubuntu/email-summary/ && tar xvzf -"
 
 # connect to EC2 and restart the pm2 app
 ssh jhcao.net
-pm2 restart email-summary
+pm2 restart emailsummary
 exit
 ```
+
+## Production reference
+
+The app is deployed on EC2 and managed by PM2.
+
+The EC2 server uses nginx to manage routing to two discrete applications. The docker config files are here to mirror the EC2 prod config, enabling testing of the rate limiter functionality.
 
 # Next.js Boilerplate Readme
 
