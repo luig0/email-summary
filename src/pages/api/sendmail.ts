@@ -89,7 +89,7 @@ const getTransactionsTables = async (
   const makeTable = (headers: string[], transactions: Transaction[], signFlipper: number) => {
     let txTotalNet = 0;
 
-    if (transactions.length === 0) return '<div>No transactions.</div>'
+    if (transactions.length === 0) return '<div>No transactions.</div>';
 
     return `
       <table border="1" cellpadding="3" cellspacing="0" width="640">
@@ -179,8 +179,6 @@ const getTransactionsTables = async (
 };
 
 const sendDailyUpdate = async (sortedSubs: SortedSubscriptions, dateString: string | undefined): Promise<void> => {
-  let to;
-
   if (dateString === undefined) {
     const date = new Date();
     date.setDate(date.getDate() - 1);
@@ -190,24 +188,24 @@ const sendDailyUpdate = async (sortedSubs: SortedSubscriptions, dateString: stri
       .padStart(2, '0')}`;
   }
 
-  let emailBody = `
-    <h1 style="margin-bottom: 1px;">Daily Financial Summary</h1>
-    <div style="margin: 0px; font-style: italic; color: #606060">
-      Summary of transactions dated ${dateString}.
-      <br />Provided by mailer.jhcao.net. Log in to change your preferences.
-    </div>
-  `;
-
   for (const [email_address, user] of Object.entries(sortedSubs)) {
-    to = email_address;
+    let to = email_address;
+
+    let emailBody = `
+      <h1 style="margin-bottom: 1px;">Daily Financial Summary</h1>
+      <div style="margin: 0px; font-style: italic; color: #606060">
+        Summary of transactions dated ${dateString}.
+        <br />Provided by mailer.jhcao.net. Log in to change your preferences.
+      </div>
+    `;
 
     for (const [access_token, institution] of Object.entries(user)) {
       emailBody += await getTransactionsTables(access_token, institution, dateString, dateString);
     }
-  }
 
-  if (to && emailBody) {
-    await sendMail(to, `Daily Financial Summary, ${dateString}`, emailBody);
+    if (to && emailBody) {
+      await sendMail(to, `Daily Financial Summary, ${dateString}`, emailBody);
+    }
   }
 };
 
@@ -216,9 +214,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     try {
       const auth = await checkAuth(req);
       let mailerData = auth.isCron ? await db.getMailerData() : await db.getMailerDataForUser(auth.emailAddress!);
-
       const sortedSubs = sortByEmailAndAccesToken(mailerData);
-
       const { period, dateString } = req.body;
 
       switch (period) {
