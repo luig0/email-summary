@@ -12,14 +12,10 @@ if (process.env.PLAID_ENV && !fs.existsSync(DB_DIR)) {
   fs.mkdirSync(DB_DIR, { recursive: true });
 }
 
-const db = new sqlite3.Database(DB_PATH, async (err) => {
-  if (err) {
-    console.log('error connecting to db:', err);
-    console.log('err DB_PATH:', DB_PATH);
-  } else {
-    console.log('successfully connected to db');
+const db = new sqlite3.Database(DB_PATH);
 
-    const createUsersTable = `
+export const createTables = async () => {
+  const createUsersTable = `
       CREATE TABLE IF NOT EXISTS users (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         email_address TEXT NOT NULL UNIQUE,
@@ -32,9 +28,9 @@ const db = new sqlite3.Database(DB_PATH, async (err) => {
       );
     `;
 
-    await db.run(createUsersTable);
+  await run(createUsersTable);
 
-    const createSessionsTable = `
+  const createSessionsTable = `
       CREATE TABLE IF NOT EXISTS sessions (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         user_id INTEGER NOT NULL,
@@ -45,9 +41,9 @@ const db = new sqlite3.Database(DB_PATH, async (err) => {
       );
     `;
 
-    await db.run(createSessionsTable);
+  await run(createSessionsTable);
 
-    const createAccessTokensTable = `
+  const createAccessTokensTable = `
       CREATE TABLE IF NOT EXISTS access_tokens (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         user_id INTEGER NOT NULL,
@@ -60,9 +56,9 @@ const db = new sqlite3.Database(DB_PATH, async (err) => {
       );
     `;
 
-    await db.run(createAccessTokensTable);
+  await run(createAccessTokensTable);
 
-    const createInstitutionsTable = `
+  const createInstitutionsTable = `
       CREATE TABLE IF NOT EXISTS institutions (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         institution_id TEXT UNIQUE NOT NULL,
@@ -71,9 +67,9 @@ const db = new sqlite3.Database(DB_PATH, async (err) => {
       );
     `;
 
-    await db.run(createInstitutionsTable);
+  await run(createInstitutionsTable);
 
-    const createAccountsTable = `
+  const createAccountsTable = `
       CREATE TABLE IF NOT EXISTS accounts (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         uuid TEXT UNIQUE NOT NULL,
@@ -91,9 +87,8 @@ const db = new sqlite3.Database(DB_PATH, async (err) => {
       );
     `;
 
-    await db.run(createAccountsTable);
-  }
-});
+  await run(createAccountsTable);
+};
 
 export const run = (sql: string, params: (string | null)[] = []): Promise<void> => {
   return new Promise((resolve, reject) => {

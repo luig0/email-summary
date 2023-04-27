@@ -13,7 +13,19 @@ This README primarily serves as a refresher to myself to make it easier to add f
 ## Quickstart
 
 ```
+# cd to project root (email-summary/)
+
+# set up environment variables
 cp sample.env.local .env.local # fill in values for the needed environment variables
+
+# install dependencies
+npm install
+
+# create the db tables
+npx ts-node src/scripts/CreateDatabase.ts
+
+# start the application in development mode
+npm run dev
 ```
 
 ## To make changes
@@ -32,13 +44,14 @@ The application uses GitHub Actions as a cron job to send curl requests to the s
 
 ## Start a new instance of the application in pm2:
 ```
+# the following assumes that the project is built and copied to EC2 using the included GitHub Action
 cd /home/ubuntu/email-summary/
 pm2 start emailsummary.pm2.config.js
 ```
 
 ## Test a local build in prod without committing to the repository
 ```
-# connect to EC2 and delete the existin build
+# connect to EC2 and delete the existing build
 ssh jhcao.net
 rm -rf /home/ubuntu/email-summary/.next
 exit
