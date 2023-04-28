@@ -40,6 +40,7 @@ npm run dev
 
 The application uses GitHub Actions as a cron job to send curl requests to the server, which in turn triggers the daily/weekly/monthly mailer. In order for this to work , the GitHub repository must have the following secret configured:
   - `MAILER_TOKEN`: this is a unique string which is stored in the server's environment variables. It must match process.env.BEARER_TOKEN
+  - `API_BASE_URL`: this is the base URL where the application is hosted
 
 ## Start a new instance of the application in pm2:
 ```

@@ -20,4 +20,4 @@ jobs:
     steps:
     # Runs a single command using the runners shell
     - name: Send curl
-      run: "curl -X POST --header 'Authorization: Bearer ${{ secrets.MAILER_TOKEN }}' --header 'Content-Type: application/json' -d '{\"period\": \"daily\"}' https://mailer.jhcao.net/api/sendmail"
+      run: "curl -X POST --header 'Authorization: Bearer ${{ secrets.MAILER_TOKEN }}' --header 'Content-Type: application/json' -d '{\"period\": \"daily\"}' ${{ secrets.API_BASE_URL }}/api/sendmail"
