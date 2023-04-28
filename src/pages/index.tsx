@@ -165,7 +165,7 @@ const App = (props: AppProps) => {
       <Row>
         <Col></Col>
         <Col xs={6}>
-          <h1>Welcome to my super secret website.</h1>
+          <h1>Welcome to my super secret website..</h1>
           {!showRegistrationForm && <LoginForm setShowRegistrationForm={setShowRegistrationForm} />}
           {showRegistrationForm && <RegistrationForm setShowRegistrationForm={setShowRegistrationForm} />}
         </Col>
