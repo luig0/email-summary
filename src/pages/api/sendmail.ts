@@ -134,9 +134,25 @@ const getTransactionsTables = async (
   `;
   };
 
+  const getItemLastUpdate = async () => {
+    try {
+      const response = await plaidClient.itemGet({ access_token });
+      const lastUpdate = response.data.status?.transactions?.last_successful_update;
+
+      return lastUpdate ? `${lastUpdate} (UTC)` : 'failed to retrieve';
+    } catch (err) {
+      return 'failed to retrieve';
+    }
+  };
+
   let emailBody = '';
 
   emailBody += `<h2 style="margin-bottom: 1px;">${institution.institution_name}</h2>`;
+
+  const lastUpdate = await getItemLastUpdate();
+  emailBody += `
+    <div style="margin: 0px; font-style: italic; color: #606060">Plaid last refreshed transactions at: ${lastUpdate}.<br /><br /></div>
+  `;
 
   for (const account_id of institution.account_ids) {
     const request: TransactionsGetRequest = {
