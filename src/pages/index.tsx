@@ -132,6 +132,7 @@ const RegistrationForm = (props: RegistrationFormProps) => {
   const hasEmailAddress = (emailAddress: string) => emailAddress.length > 0 && emailAddressRegex.test(emailAddress);
   const hasPasswordLength = (password: string) => password.length >= 8 && password.length <= 22;
   const hasPasswordComplexity = (password: string) =>
+    hasPasswordLength(password) &&
     hasLowerCaseRegex.test(password) &&
     hasUpperCaseRegex.test(password) &&
     hasNumberRegex.test(password) &&
@@ -139,10 +140,7 @@ const RegistrationForm = (props: RegistrationFormProps) => {
   const hasInvitationCode = (invitationCode: string) => invitationCode.length > 0;
 
   const hasAllRegistrationChecks = (emailAddress: string, password: string, invitationCode: string) =>
-    hasEmailAddress(emailAddress) &&
-    hasPasswordLength(password) &&
-    hasPasswordComplexity(password) &&
-    hasInvitationCode(invitationCode);
+    hasEmailAddress(emailAddress) && hasPasswordComplexity(password) && hasInvitationCode(invitationCode);
 
   const { setShowRegistrationForm } = props;
   const [loginStatus, setLoginStatus] = useState('');
