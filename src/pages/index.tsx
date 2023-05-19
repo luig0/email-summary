@@ -35,21 +35,6 @@ const hasUpperCaseRegex = new RegExp(/[A-Z]+/);
 const hasNumberRegex = new RegExp(/[0-9]+/);
 const hasSpecialCharacterRegex = new RegExp(/[!@#\$%\^&\*\(\)\-_\+=]+/);
 
-// form validation
-const hasEmailAddress = (emailAddress: string) => emailAddress.length > 0 && emailAddressRegex.test(emailAddress);
-const hasPasswordLength = (password: string) => password.length >= 8 && password.length <= 22;
-const hasPasswordComplexity = (password: string) =>
-  hasLowerCaseRegex.test(password) &&
-  hasUpperCaseRegex.test(password) &&
-  hasNumberRegex.test(password) &&
-  hasSpecialCharacterRegex.test(password);
-const hasInvitationCode = (invitationCode: string) => invitationCode.length > 0;
-const hasAllRegistrationChecks = (emailAddress: string, password: string, invitationCode: string) =>
-  hasEmailAddress(emailAddress) &&
-  hasPasswordLength(password) &&
-  hasPasswordComplexity(password) &&
-  hasInvitationCode(invitationCode);
-
 export const getServerSideProps: GetServerSideProps<AppProps> = async (context) => {
   const { req, res } = context;
   const props: AppProps = { loggedIn: false };
@@ -142,6 +127,22 @@ const RegistrationForm = (props: RegistrationFormProps) => {
 
     if (res.status === 201 && res.statusText === messages.CREATED) location.reload();
   };
+
+  // form validation
+  const hasEmailAddress = (emailAddress: string) => emailAddress.length > 0 && emailAddressRegex.test(emailAddress);
+  const hasPasswordLength = (password: string) => password.length >= 8 && password.length <= 22;
+  const hasPasswordComplexity = (password: string) =>
+    hasLowerCaseRegex.test(password) &&
+    hasUpperCaseRegex.test(password) &&
+    hasNumberRegex.test(password) &&
+    hasSpecialCharacterRegex.test(password);
+  const hasInvitationCode = (invitationCode: string) => invitationCode.length > 0;
+
+  const hasAllRegistrationChecks = (emailAddress: string, password: string, invitationCode: string) =>
+    hasEmailAddress(emailAddress) &&
+    hasPasswordLength(password) &&
+    hasPasswordComplexity(password) &&
+    hasInvitationCode(invitationCode);
 
   const { setShowRegistrationForm } = props;
   const [loginStatus, setLoginStatus] = useState('');
