@@ -267,7 +267,7 @@ export async function getAccessTokenByUuid(uuid: string): Promise<{ [key: string
   }
 }
 
-export async function disableAccessToken(uuid: string): Promise<void> {
+export async function disableAccessTokenByUuid(uuid: string): Promise<void> {
   try {
     await dao.run(`UPDATE access_tokens SET is_active = 0 WHERE uuid=?`, [uuid]);
   } catch (error: any) {
