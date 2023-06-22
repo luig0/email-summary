@@ -1,5 +1,6 @@
 import { GetServerSideProps } from 'next';
 import { useRouter } from 'next/router';
+import Image from 'next/image';
 import styles from '@/styles/Config.module.css';
 import { useEffect, useState } from 'react';
 
@@ -14,14 +15,18 @@ import * as db from '@/lib/database/Adapter';
 import LinkAccounts from '@/components/LinkAccounts';
 import type { AccountData } from './api/accounts';
 
-interface HomeProps {
-  emailAddress: string;
+interface ReauthorizeAccountsPanelProps {
+  expiredConnections: AccountData[];
 }
 
 interface AccountsPanelProps {
   isLoading: boolean;
   data: AccountData[];
   fetchAccounts: () => void;
+}
+
+interface HomeProps {
+  emailAddress: string;
 }
 
 export const getServerSideProps: GetServerSideProps = async ({ req }) => {
@@ -55,6 +60,39 @@ const removeAccessToken = async (accessTokenUuid: string, fetchAccounts: () => v
   if (fetchResult.ok) await fetchAccounts();
 };
 
+const ReauthorizeAccountsPanel = (props: ReauthorizeAccountsPanelProps) => (
+  <>
+    <Table bordered className="mt-0 mb-5">
+      <thead>
+        <tr className="border-top-0">
+          <td colSpan={2} className="p-2 border-top-0 border-start-0 border-end-0">
+            <div className="fs-2">
+              Mailer no longer has access to the following accounts{' '}
+              <img style={{ height: '1em', paddingBottom: '5px' }} src="/warning.png" />
+            </div>
+            <span className="fs-6 text-secondary">
+              This usually happens because the institution wants you to confirm that the mailer should continue to have
+              access to your accounts.
+            </span>
+          </td>
+        </tr>
+      </thead>
+      <tbody>
+        {props.expiredConnections.map((connection, index) => (
+          <tr key={`ec-${index}`}>
+            <td className="ps-3 fs-4 border-end-0">{connection.name} </td>
+            <td className="align-middle text-end border-start-0">
+              <Button variant="warning" size="sm">
+                Reauthorize
+              </Button>
+            </td>
+          </tr>
+        ))}
+      </tbody>
+    </Table>
+  </>
+);
+
 const AccountsPanel = (props: AccountsPanelProps) => {
   const sendMail = async (period: string) => {
     setIsSendingMail(true);
@@ -77,15 +115,18 @@ const AccountsPanel = (props: AccountsPanelProps) => {
 
   useEffect(() => {
     setAccountData(props.data);
+    setExpiredConnections(props.data.filter((d) => d.is_expired === true));
   }, [props.data]);
 
   const { isLoading, fetchAccounts } = props;
-  const [accountData, setAccountData] = useState(props.data);
-  const [isSendingMail, setIsSendingMail] = useState(false);
+  const [accountData, setAccountData] = useState<AccountData[]>(props.data);
+  const [expiredConnections, setExpiredConnections] = useState<AccountData[]>([]);
+  const [isSendingMail, setIsSendingMail] = useState<boolean>(false);
 
   return (
     <>
-      <table>
+      {expiredConnections.length > 0 && <ReauthorizeAccountsPanel expiredConnections={expiredConnections} />}
+      <Table borderless className="m-0">
         <tbody>
           <tr>
             <td>
@@ -129,7 +170,7 @@ const AccountsPanel = (props: AccountsPanelProps) => {
             </td>
           </tr>
         </tbody>
-      </table>
+      </Table>
 
       {accountData.length > 0 && (
         <>
@@ -140,7 +181,7 @@ const AccountsPanel = (props: AccountsPanelProps) => {
                 <Table bordered>
                   <thead>
                     <tr>
-                      <td className="ps-3 fs-4 border-end-0">{ins.name}</td>
+                      <td className="ps-3 fs-4 border-end-0">{ins.name} </td>
                       <td className="align-middle text-end border-start-0">
                         <Button
                           variant="danger"
@@ -194,7 +235,7 @@ const ConfigPanel = (props: HomeProps) => {
 
   return (
     <main className={styles.main}>
-      <Container className="mt-5">
+      <Container className="mt-5 mb-5">
         <Row>
           <Col></Col>
           <Col xs={8}>
