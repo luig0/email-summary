@@ -170,31 +170,59 @@ const getTransactionsTables = async (
       },
     };
 
-    const response = await plaidClient.transactionsGet(request);
+    try {
+      const response = await plaidClient.transactionsGet(request);
+      const accountBalance = response.data.accounts[0].balances.current ?? response.data.accounts[0].balances.available;
+      const accountType = response.data.accounts[0].type;
+      const signFlipper = accountType === 'credit' ? 1 : -1;
 
-    emailBody += `<h4 style="margin: 0px;"></h4>`;
+      emailBody += `
+        <table border="0" cellpadding="3" cellspacing="0" width="640">
+          <tbody>
+            <tr>
+              <td align="left" style="font-weight: bold;">
+                ${response.data.accounts[0].name} (${response.data.accounts[0].mask})
+              </td>
+              <td align="right" style="font-weight: bold;">
+                Balance: ${accountBalance !== null ? formatMoney(accountBalance) : 'Unavailable'}
+              </td>
+            </tr>
+          </tbody>
+        </table>
+        ${makeTable(['Date', 'Description', 'Amount'], response.data.transactions, signFlipper)}
+        <br /><br />
+      `;
+    } catch (error: any) {
+      // send an email to admin notifying of error
+      if (typeof process.env.ADMIN_EMAIL_ADDRESS === 'string')
+        await sendMail(
+          process.env.ADMIN_EMAIL_ADDRESS,
+          'Daily Mailer Error',
+          `
+            access_token: ${access_token}
+            <br />error:
+            <br />${JSON.stringify(error.response.data)}
+          `
+        );
 
-    const accountBalance = response.data.accounts[0].balances.current ?? response.data.accounts[0].balances.available;
-    const accountType = response.data.accounts[0].type;
-    const signFlipper = accountType === 'credit' ? 1 : -1;
-    emailBody += `
-      <table border="0" cellpadding="3" cellspacing="0" width="640">
-        <tbody>
-          <tr>
-            <td align="left" style="font-weight: bold;">
-              ${response.data.accounts[0].name} (${response.data.accounts[0].mask})
-            </td>
-            <td align="right" style="font-weight: bold;">
-              Balance: ${accountBalance !== null ? formatMoney(accountBalance) : 'Unavailable'}
-            </td>
-          </tr>
-        </tbody>
-      </table>
-      ${makeTable(['Date', 'Description', 'Amount'], response.data.transactions, signFlipper)}
-      <br /><br />
-    `;
+      if (error.response.data.error_code === 'ITEM_LOGIN_REQUIRED') {
+        // give error in the summary email
+        emailBody += `
+          <div style="color: red;">Plaid API returned the following error: ${error.response.data.error_code}</div>
+          <div style="margin-top: 10px;">
+            This usually means that the credentials for this connection have expired. 
+            Please log in to reauthorize the mailer's access to your account.
+          </div>
+        `;
 
-    await sleep(250);
+        // update db is_expired to 1
+        await db.setAccessTokenIsExpired(access_token, true);
+      } else {
+        throw error;
+      }
+    } finally {
+      await sleep(250);
+    }
   }
 
   return emailBody;
