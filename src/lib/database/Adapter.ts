@@ -60,6 +60,7 @@ export interface AccessTokenRecord {
   access_token: string;
   item_id: string;
   date_created: string;
+  is_expired: number;
 }
 
 interface DbUser {
@@ -246,7 +247,7 @@ export async function getAccessTokens(emailAddress: string): Promise<AccessToken
   try {
     return await dao.all(
       `
-        SELECT uuid, access_token, item_id, date_created 
+        SELECT uuid, access_token, item_id, date_created , is_expired
         FROM access_tokens 
         WHERE user_id=(SELECT id FROM users WHERE email_address=?) AND is_active = 1
       `,
@@ -272,6 +273,15 @@ export async function disableAccessTokenByUuid(uuid: string): Promise<void> {
     await dao.run(`UPDATE access_tokens SET is_active = 0 WHERE uuid=?`, [uuid]);
   } catch (error: any) {
     console.log('Adapter.ts, deleteAccessToken error:', error.message);
+    throw new Error(error.message);
+  }
+}
+
+export async function setAccessTokenIsExpired(accessToken: string, isExpired: boolean): Promise<void> {
+  try {
+    await dao.run(`UPDATE access_tokens SET is_expired = ? WHERE access_token=?`, [isExpired ? '1' : '0', accessToken]);
+  } catch (error: any) {
+    console.log('Adapter.ts, setAccessTokenIsExpired error:', error.message);
     throw new Error(error.message);
   }
 }
