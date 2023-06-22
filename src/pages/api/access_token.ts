@@ -38,7 +38,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       await plaidClient.itemRemove(request);
 
       await db.deleteAccounts(accessTokenUuid);
-      await db.disableAccessToken(accessTokenUuid);
+      await db.disableAccessTokenByUuid(accessTokenUuid);
       res.status(204).send('');
     } catch (error: any) {
       console.log(`DELETE /api/access_token error:`, error.message);
