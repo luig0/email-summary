@@ -225,14 +225,15 @@ export async function createAccessToken(emailAddress: string, accessToken: strin
   try {
     await dao.run(
       `
-        INSERT INTO access_tokens (user_id, uuid, access_token, item_id, date_created, is_active)
+        INSERT INTO access_tokens (user_id, uuid, access_token, item_id, date_created, is_active, is_expired)
         VALUES (
           (SELECT id FROM users WHERE email_address=?),
           ?,
           ?,
           ?,
           ?,
-          1
+          1,
+          0
         );
     `,
       [emailAddress, uuid, accessToken, itemId, new Date().toISOString()]
