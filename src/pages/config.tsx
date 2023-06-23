@@ -69,7 +69,7 @@ const ReauthorizeAccountsPanel = (props: ReauthorizeAccountsPanelProps) => (
             <div className="fs-2">Mailer no longer has access to the following accounts </div>
             <span className="fs-6">
               This usually happens because the institution wants you to confirm that the mailer should continue to have
-              access to your accounts.
+              access to your transactions information.
             </span>
           </td>
         </tr>
