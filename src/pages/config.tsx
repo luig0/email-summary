@@ -71,6 +71,9 @@ const ReauthorizeAccountsPanel = (props: ReauthorizeAccountsPanelProps) => (
               This usually happens because the institution wants you to confirm that the mailer should continue to have
               access to your transactions information.
             </span>
+            <span className="fs-6 fst-italic">
+              <br /><br />* This functionality is still being implemented. It is not yet possible to reauthorize.
+            </span>
           </td>
         </tr>
       </thead>
@@ -79,7 +82,7 @@ const ReauthorizeAccountsPanel = (props: ReauthorizeAccountsPanelProps) => (
           <tr key={`ec-${index}`}>
             <td className="ps-5 fs-4 border-end-0 text-start">{connection.name} </td>
             <td className="align-middle text-start border-start-0">
-              <Button variant="secondary" size="sm">
+              <Button variant="primary" size="sm" disabled>
                 Click here to reauthorize
               </Button>
             </td>
