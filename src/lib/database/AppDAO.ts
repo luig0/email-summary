@@ -52,6 +52,7 @@ export const createTables = async () => {
         item_id TEXT NOT NULL,
         date_created TEXT NOT NULL,
         is_active INTEGER NOT NULL,
+        is_expired INTEGER NOT NULL,
         FOREIGN KEY (user_id) REFERENCES users(id)
       );
     `;

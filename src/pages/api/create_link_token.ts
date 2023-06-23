@@ -34,7 +34,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
           // This should correspond to a unique id for the current user.
           client_user_id: id.toString(),
         },
-        client_name: 'Plaid Quickstart',
+        client_name: 'Transactions Email Summary',
         products: PLAID_PRODUCTS,
         country_codes: PLAID_COUNTRY_CODES,
         language: 'en',

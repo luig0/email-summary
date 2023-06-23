@@ -10,6 +10,7 @@ export interface AccountData {
   name: string;
   accounts: Account[];
   access_token_uuid: string;
+  is_expired: boolean;
 }
 
 interface Account {
@@ -126,7 +127,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
       for (const accessTokenRecord of accessTokenRecords) {
         let institution_id = '';
-        const { access_token } = accessTokenRecord;
+        const { access_token, is_expired } = accessTokenRecord;
 
         const accounts = await getAccounts(access_token);
 
@@ -139,6 +140,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           name: institution.name,
           accounts,
           access_token_uuid: accessTokenRecord.uuid,
+          is_expired: is_expired ? true : false,
         });
       }
 
