@@ -61,16 +61,13 @@ const removeAccessToken = async (accessTokenUuid: string, fetchAccounts: () => v
 };
 
 const ReauthorizeAccountsPanel = (props: ReauthorizeAccountsPanelProps) => (
-  <>
-    <Table bordered className="mt-0 mb-5">
+  <div style={{ background: '#ffc107' }} className="mb-5">
+    <Table borderless className="mt-0">
       <thead>
         <tr className="border-top-0">
           <td colSpan={2} className="p-2 border-top-0 border-start-0 border-end-0">
-            <div className="fs-2">
-              Mailer no longer has access to the following accounts{' '}
-              <img style={{ height: '1em', paddingBottom: '5px' }} src="/warning.png" />
-            </div>
-            <span className="fs-6 text-secondary">
+            <div className="fs-2">Mailer no longer has access to the following accounts </div>
+            <span className="fs-6">
               This usually happens because the institution wants you to confirm that the mailer should continue to have
               access to your accounts.
             </span>
@@ -80,17 +77,17 @@ const ReauthorizeAccountsPanel = (props: ReauthorizeAccountsPanelProps) => (
       <tbody>
         {props.expiredConnections.map((connection, index) => (
           <tr key={`ec-${index}`}>
-            <td className="ps-3 fs-4 border-end-0">{connection.name} </td>
-            <td className="align-middle text-end border-start-0">
-              <Button variant="warning" size="sm">
-                Reauthorize
+            <td className="ps-5 fs-4 border-end-0 text-start">{connection.name} </td>
+            <td className="align-middle text-start border-start-0">
+              <Button variant="secondary" size="sm">
+                Click here to reauthorize
               </Button>
             </td>
           </tr>
         ))}
       </tbody>
     </Table>
-  </>
+  </div>
 );
 
 const AccountsPanel = (props: AccountsPanelProps) => {
