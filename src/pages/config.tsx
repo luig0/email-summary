@@ -1,6 +1,5 @@
 import { GetServerSideProps } from 'next';
 import { useRouter } from 'next/router';
-import Image from 'next/image';
 import styles from '@/styles/Config.module.css';
 import { useEffect, useState } from 'react';
 
@@ -16,10 +15,13 @@ import LinkAccounts from '@/components/LinkAccounts';
 import type { AccountData } from './api/accounts';
 
 interface ReauthorizeAccountsPanelProps {
+  setIsLoading: (arg: boolean) => void;
   expiredConnections: AccountData[];
+  fetchAccounts: () => void;
 }
 
 interface AccountsPanelProps {
+  setIsLoading: (arg: boolean) => void;
   isLoading: boolean;
   data: AccountData[];
   fetchAccounts: () => void;
@@ -71,9 +73,6 @@ const ReauthorizeAccountsPanel = (props: ReauthorizeAccountsPanelProps) => (
               This usually happens because the institution wants you to confirm that the mailer should continue to have
               access to your transactions information.
             </span>
-            <span className="fs-6 fst-italic">
-              <br /><br />* This functionality is still being implemented. It is not yet possible to reauthorize.
-            </span>
           </td>
         </tr>
       </thead>
@@ -82,9 +81,11 @@ const ReauthorizeAccountsPanel = (props: ReauthorizeAccountsPanelProps) => (
           <tr key={`ec-${index}`}>
             <td className="ps-5 fs-4 border-end-0 text-start">{connection.name} </td>
             <td className="align-middle text-start border-start-0">
-              <Button variant="primary" size="sm" disabled>
-                Click here to reauthorize
-              </Button>
+              <LinkAccounts
+                setIsLoading={props.setIsLoading}
+                fetchAccounts={props.fetchAccounts}
+                accessTokenUuid={connection.access_token_uuid}
+              />
             </td>
           </tr>
         ))}
@@ -118,14 +119,20 @@ const AccountsPanel = (props: AccountsPanelProps) => {
     setExpiredConnections(props.data.filter((d) => d.is_expired === true));
   }, [props.data]);
 
-  const { isLoading, fetchAccounts } = props;
+  const { setIsLoading, isLoading, fetchAccounts } = props;
   const [accountData, setAccountData] = useState<AccountData[]>(props.data);
   const [expiredConnections, setExpiredConnections] = useState<AccountData[]>([]);
   const [isSendingMail, setIsSendingMail] = useState<boolean>(false);
 
   return (
     <>
-      {expiredConnections.length > 0 && <ReauthorizeAccountsPanel expiredConnections={expiredConnections} />}
+      {expiredConnections.length > 0 && (
+        <ReauthorizeAccountsPanel
+          setIsLoading={setIsLoading}
+          expiredConnections={expiredConnections}
+          fetchAccounts={fetchAccounts}
+        />
+      )}
       <Table borderless className="m-0">
         <tbody>
           <tr>
@@ -257,7 +264,12 @@ const ConfigPanel = (props: HomeProps) => {
               </Col>
             </Row>
             <Row>
-              <AccountsPanel isLoading={isLoading} data={accountData} fetchAccounts={fetchAccounts} />
+              <AccountsPanel
+                setIsLoading={setIsLoading}
+                isLoading={isLoading}
+                data={accountData}
+                fetchAccounts={fetchAccounts}
+              />
             </Row>
           </Col>
           <Col></Col>

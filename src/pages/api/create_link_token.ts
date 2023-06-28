@@ -3,6 +3,7 @@ import { CountryCode, LinkTokenCreateRequest, LinkTokenCreateResponse, Products 
 
 import * as db from '@/lib/database/Adapter';
 import client from '@/lib/PlaidApiClient';
+import * as messages from '@/lib/Messages';
 
 // PLAID_PRODUCTS is a comma-separated list of products to use when initializing
 // Link. Note that this list must contain 'assets' in order for the app to be
@@ -27,26 +28,46 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
     const sessionToken = req.cookies['session-token'];
 
     if (sessionToken) {
-      const { email_address } = await db.getSessionAndUser(sessionToken);
-      const id = await db.getUserId(email_address);
-      const configs: LinkTokenCreateRequest = {
-        user: {
-          // This should correspond to a unique id for the current user.
-          client_user_id: id.toString(),
-        },
-        client_name: 'Transactions Email Summary',
-        products: PLAID_PRODUCTS,
-        country_codes: PLAID_COUNTRY_CODES,
-        language: 'en',
-      };
+      try {
+        const { email_address } = await db.getSessionAndUser(sessionToken);
+        const id = await db.getUserId(email_address);
+        const configs: LinkTokenCreateRequest = {
+          user: {
+            // This should correspond to a unique id for the current user.
+            client_user_id: id.toString(),
+          },
+          client_name: 'Transactions Email Summary',
+          products: PLAID_PRODUCTS,
+          country_codes: PLAID_COUNTRY_CODES,
+          language: 'en',
+        };
 
-      if (PLAID_REDIRECT_URI !== '') {
-        configs.redirect_uri = PLAID_REDIRECT_URI;
+        if (PLAID_REDIRECT_URI !== '') {
+          configs.redirect_uri = PLAID_REDIRECT_URI;
+        }
+
+        if (req.body !== undefined) {
+          if (req.body.access_token_uuid !== undefined && typeof req.body.access_token_uuid === 'string') {
+            const dbToken = await db.getAccessTokenByUuid(req.body.access_token_uuid);
+            configs.access_token = dbToken.access_token;
+          }
+        }
+
+        const createTokenResponse = await client.linkTokenCreate(configs);
+        res.json(createTokenResponse.data);
+      } catch (error: any) {
+        switch (error.message) {
+          case messages.UNAUTHORIZED:
+          case messages.SESSION_HAS_EXPIRED:
+            res.status(401).send(messages.UNAUTHORIZED);
+            break;
+          default:
+            console.log('[/api/create_link_token] error:', error);
+            res.status(500).send(messages.INTERNAL_SERVER_ERROR);
+            break;
+        }
       }
-
-      const createTokenResponse = await client.linkTokenCreate(configs);
-      res.json(createTokenResponse.data);
-    }
+    } else res.status(401).send(messages.UNAUTHORIZED);
   } else {
     res.status(405).send('Method Not Allowed');
   }

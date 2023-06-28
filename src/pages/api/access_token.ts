@@ -10,22 +10,30 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const publicToken = req.body.public_token;
 
     try {
-      const plaidResponse = await plaidClient.itemPublicTokenExchange({
-        public_token: publicToken,
-      });
-
-      // These values should be saved to a persistent database and
-      // associated with the currently signed-in user
-      const accessToken = plaidResponse.data.access_token;
-      const itemId = plaidResponse.data.item_id;
       const sessionToken = req.cookies['session-token'];
-
       if (!sessionToken) throw new Error(messages.SESSION_HAS_EXPIRED);
-
       const { email_address } = await db.getSessionAndUser(sessionToken);
-      await db.createAccessToken(email_address, accessToken, itemId);
 
-      res.status(201).send(messages.CREATED);
+      if (req.body.access_token_uuid !== undefined) {
+        // update oauth (https://plaid.com/docs/link/update-mode/)
+
+        await db.setAccessTokenIsExpiredByUuid(req.body.access_token_uuid, false);
+        res.status(204).send(messages.NO_CONTENT);
+      } else {
+        // add new account
+
+        const plaidResponse = await plaidClient.itemPublicTokenExchange({
+          public_token: publicToken,
+        });
+
+        // These values should be saved to a persistent database and
+        // associated with the currently signed-in user
+        const accessToken = plaidResponse.data.access_token;
+        const itemId = plaidResponse.data.item_id;
+        await db.createAccessToken(email_address, accessToken, itemId);
+
+        res.status(201).send(messages.CREATED);
+      }
     } catch (error) {
       res.status(500).send(messages.INTERNAL_SERVER_ERROR);
     }
