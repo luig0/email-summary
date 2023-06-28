@@ -7,7 +7,7 @@ import Spinner from 'react-bootstrap/Spinner';
 interface LinkAccountsProps {
   setIsLoading: (arg: boolean) => void;
   fetchAccounts: () => void;
-  accessTokenUuid: string | undefined;
+  accessTokenUuid?: string;
 }
 
 // LINK COMPONENT
@@ -17,7 +17,7 @@ interface LinkProps {
   linkToken: string;
   setIsLoading: (arg: boolean) => void;
   fetchAccounts: () => void;
-  accessTokenUuid: string | undefined;
+  accessTokenUuid?: string;
 }
 const Link: React.FC<LinkProps> = (props: LinkProps) => {
   const { setIsLoading, fetchAccounts, accessTokenUuid } = props;
