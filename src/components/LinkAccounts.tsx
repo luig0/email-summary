@@ -7,6 +7,7 @@ import Spinner from 'react-bootstrap/Spinner';
 interface LinkAccountsProps {
   setIsLoading: (arg: boolean) => void;
   fetchAccounts: () => void;
+  accessTokenUuid: string | undefined;
 }
 
 // LINK COMPONENT
@@ -16,9 +17,10 @@ interface LinkProps {
   linkToken: string;
   setIsLoading: (arg: boolean) => void;
   fetchAccounts: () => void;
+  accessTokenUuid: string | undefined;
 }
 const Link: React.FC<LinkProps> = (props: LinkProps) => {
-  const { setIsLoading, fetchAccounts } = props;
+  const { setIsLoading, fetchAccounts, accessTokenUuid } = props;
 
   const onSuccess = useCallback(
     async (public_token: string, metadata: PlaidLinkOnSuccessMetadata) => {
@@ -28,7 +30,7 @@ const Link: React.FC<LinkProps> = (props: LinkProps) => {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ public_token }),
+        body: JSON.stringify({ public_token, access_token_uuid: accessTokenUuid }),
       });
       // Handle response ...
       // console.log('Link onSuccess, response data:', response.statusText);
@@ -45,7 +47,6 @@ const Link: React.FC<LinkProps> = (props: LinkProps) => {
 
   const config: Parameters<typeof usePlaidLink>[0] = {
     token: props.linkToken,
-    // receivedRedirectUri: window.location.href,
     onSuccess,
     onExit,
   };
@@ -61,7 +62,7 @@ const Link: React.FC<LinkProps> = (props: LinkProps) => {
       }}
       disabled={!ready}
     >
-      Link bank accounts
+      {accessTokenUuid !== undefined ? 'Click here to reauthorize' : 'Link bank accounts'}
     </Button>
   );
 };
@@ -70,6 +71,11 @@ const LinkAccounts = (props: LinkAccountsProps) => {
   const generateToken = async () => {
     const response = await fetch('/api/create_link_token', {
       method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body:
+        props.accessTokenUuid !== undefined ? JSON.stringify({ access_token_uuid: props.accessTokenUuid }) : undefined,
     });
     if (response.ok) {
       const data = await response.json();
@@ -86,7 +92,12 @@ const LinkAccounts = (props: LinkAccountsProps) => {
   }, []);
 
   return linkToken !== null ? (
-    <Link linkToken={linkToken} setIsLoading={props.setIsLoading} fetchAccounts={props.fetchAccounts} />
+    <Link
+      linkToken={linkToken}
+      setIsLoading={props.setIsLoading}
+      fetchAccounts={props.fetchAccounts}
+      accessTokenUuid={props.accessTokenUuid}
+    />
   ) : (
     <>
       <Button variant="secondary" disabled>
