@@ -2,7 +2,7 @@ import type { NextApiRequest, NextApiResponse } from 'next';
 import { CountryCode, LinkTokenCreateRequest, LinkTokenCreateResponse, Products } from 'plaid';
 
 import * as db from '@/common/utils/database/Adapter';
-import client from '@/lib/PlaidApiClient';
+import client from '@/common/utils/PlaidApiClient';
 import * as messages from '@/common/Messages';
 
 // PLAID_PRODUCTS is a comma-separated list of products to use when initializing

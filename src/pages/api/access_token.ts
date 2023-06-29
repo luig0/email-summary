@@ -3,7 +3,7 @@ import type { ItemRemoveRequest } from 'plaid';
 
 import * as db from '@/common/utils/database/Adapter';
 import * as messages from '@/common/Messages';
-import plaidClient from '@/lib/PlaidApiClient';
+import plaidClient from '@/common/utils/PlaidApiClient';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method === 'POST') {

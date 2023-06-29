@@ -3,7 +3,7 @@ import type { AccountsGetRequest, CountryCode, InstitutionsGetByIdRequest } from
 
 import * as db from '@/common/utils/database/Adapter';
 import * as messages from '@/common/Messages';
-import plaidClient from '@/lib/PlaidApiClient';
+import plaidClient from '@/common/utils/PlaidApiClient';
 
 export interface AccountData {
   institution_id: string;
