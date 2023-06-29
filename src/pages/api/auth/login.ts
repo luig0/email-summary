@@ -4,7 +4,7 @@ import type { NextApiRequest, NextApiResponse } from 'next';
 import * as db from '@/common/utils/database/Adapter';
 import { SESSION_EXPIRY_PERIOD } from '@/Constants';
 import * as messages from '@/common/Messages';
-import rateLimit from '@/lib/RateLimit';
+import rateLimit from '@/modules/auth/api/RateLimit';
 
 const limiter = rateLimit({
   interval: 60 * 1000, // 60 seconds
