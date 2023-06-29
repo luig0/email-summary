@@ -289,7 +289,7 @@ export async function setAccessTokenIsExpired(accessToken: string, isExpired: bo
 
 export async function setAccessTokenIsExpiredByUuid(accessTokenUuid: string, isExpired: boolean): Promise<void> {
   try {
-    await dao.run(`UPDATE access_tokens SET is_expired = ? WHERE access_token=?`, [isExpired ? '1' : '0', accessTokenUuid]);
+    await dao.run(`UPDATE access_tokens SET is_expired = ? WHERE uuid=?`, [isExpired ? '1' : '0', accessTokenUuid]);
   } catch (error: any) {
     console.log('Adapter.ts, setAccessTokenIsExpiredByUuid error:', error.message);
     throw new Error(error.message);

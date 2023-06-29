@@ -16,7 +16,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
       if (req.body.access_token_uuid !== undefined) {
         // update oauth (https://plaid.com/docs/link/update-mode/)
-
         await db.setAccessTokenIsExpiredByUuid(req.body.access_token_uuid, false);
         res.status(204).send(messages.NO_CONTENT);
       } else {
