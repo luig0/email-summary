@@ -1,6 +1,6 @@
 import { GetServerSideProps } from 'next';
 
-import * as db from '@/lib/database/Adapter';
+import * as db from '@/common/utils/database/Adapter';
 
 export const getServerSideProps: GetServerSideProps = async ({ req, res }) => {
   const sessionToken = req.cookies['session-token'];

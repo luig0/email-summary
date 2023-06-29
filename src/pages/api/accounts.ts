@@ -1,9 +1,9 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import type { AccountsGetRequest, CountryCode, InstitutionsGetByIdRequest } from 'plaid';
 
-import * as db from '@/lib/database/Adapter';
-import * as messages from '@/lib/Messages';
-import plaidClient from '@/lib/PlaidApiClient';
+import * as db from '@/common/utils/database/Adapter';
+import * as messages from '@/common/Messages';
+import plaidClient from '@/common/utils/PlaidApiClient';
 
 export interface AccountData {
   institution_id: string;
