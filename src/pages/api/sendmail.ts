@@ -4,7 +4,7 @@ import type { Transaction, TransactionsGetRequest } from 'plaid';
 import * as db from '@/common/utils/database/Adapter';
 import type { GetMailerDataResponse } from '@/common/utils/database/Adapter';
 import * as messages from '@/common/Messages';
-import { sendMail } from '@/lib/NodeMailer';
+import { sendMail } from '@/common/utils/NodeMailer';
 import plaidClient from '@/lib/PlaidApiClient';
 
 type EmailAddress = string;

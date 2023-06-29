@@ -6,7 +6,7 @@ import { createTables } from '@/common/utils/database/AppDAO';
 import * as db from '@/common/utils/database/Adapter';
 import sendMailHandler from '@/pages/api/sendmail';
 import plaidClient from '../../src/lib/PlaidApiClient';
-import { sendMail } from '../../src/lib/NodeMailer';
+import { sendMail } from '../../src/common/utils/NodeMailer';
 
 jest.mock('../../src/lib/PlaidApiClient');
 jest.mock('../../src/lib/NodeMailer');
