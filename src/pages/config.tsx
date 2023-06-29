@@ -11,7 +11,7 @@ import Table from 'react-bootstrap/Table';
 import Spinner from 'react-bootstrap/Spinner';
 
 import * as db from '@/lib/database/Adapter';
-import LinkAccounts from '@/components/LinkAccounts';
+import LinkAccounts from '@/common/components/LinkAccounts';
 import type { AccountData } from './api/accounts';
 
 interface ReauthorizeAccountsPanelProps {
