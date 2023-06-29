@@ -1,8 +1,8 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import type { ItemRemoveRequest } from 'plaid';
 
-import * as db from '@/lib/database/Adapter';
-import * as messages from '@/lib/Messages';
+import * as db from '@/common/utils/database/Adapter';
+import * as messages from '@/common/Messages';
 import plaidClient from '@/lib/PlaidApiClient';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {

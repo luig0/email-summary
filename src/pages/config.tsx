@@ -1,7 +1,7 @@
 import { GetServerSideProps } from 'next';
 
 import ConfigFrame from '@/modules/ConfigFrame/';
-import * as db from '@/lib/database/Adapter';
+import * as db from '@/common/utils/database/Adapter';
 
 interface HomeProps {
   emailAddress: string;

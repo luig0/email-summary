@@ -1,9 +1,9 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { CountryCode, LinkTokenCreateRequest, LinkTokenCreateResponse, Products } from 'plaid';
 
-import * as db from '@/lib/database/Adapter';
+import * as db from '@/common/utils/database/Adapter';
 import client from '@/lib/PlaidApiClient';
-import * as messages from '@/lib/Messages';
+import * as messages from '@/common/Messages';
 
 // PLAID_PRODUCTS is a comma-separated list of products to use when initializing
 // Link. Note that this list must contain 'assets' in order for the app to be

@@ -1,7 +1,7 @@
 import type { NextApiResponse } from 'next';
 import { LRUCache } from 'lru-cache';
 
-import * as messages from '@/lib/Messages';
+import * as messages from '@/common/Messages';
 
 type Options = {
   uniqueTokenPerInterval?: number;

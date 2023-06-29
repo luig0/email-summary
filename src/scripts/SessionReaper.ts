@@ -1,7 +1,7 @@
 // this file must be executed from project root (email-summary/)
 
-import * as dao from '@/lib/database/AppDAO';
-import * as db from '@/lib/database/Adapter';
+import * as dao from '@/common/utils/database/AppDAO';
+import * as db from '@/common/utils/database/Adapter';
 
 const CURRENT_TIME = Date.now();
 

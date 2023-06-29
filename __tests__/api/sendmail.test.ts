@@ -2,8 +2,8 @@ import fs from 'fs';
 
 import { createMocks } from 'node-mocks-http';
 
-import { createTables } from '@/lib/database/AppDAO';
-import * as db from '@/lib/database/Adapter';
+import { createTables } from '@/common/utils/database/AppDAO';
+import * as db from '@/common/utils/database/Adapter';
 import sendMailHandler from '@/pages/api/sendmail';
 import plaidClient from '../../src/lib/PlaidApiClient';
 import { sendMail } from '../../src/lib/NodeMailer';

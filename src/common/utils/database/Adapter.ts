@@ -52,8 +52,8 @@ import crypto from 'crypto';
 
 import { v4 as uuidv4 } from 'uuid';
 
-import * as dao from '@/lib/database/AppDAO';
-import * as messages from '@/lib/Messages';
+import * as dao from './AppDAO';
+import * as messages from '@/common/Messages';
 
 export interface AccessTokenRecord {
   uuid: string;

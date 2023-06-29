@@ -1,9 +1,9 @@
 import bcrypt from 'bcrypt';
 import type { NextApiRequest, NextApiResponse } from 'next';
 
-import * as db from '@/lib/database/Adapter';
+import * as db from '@/common/utils/database/Adapter';
 import { SESSION_EXPIRY_PERIOD } from '@/Constants';
-import * as messages from '@/lib/Messages';
+import * as messages from '@/common/Messages';
 import rateLimit from '@/lib/RateLimit';
 
 const limiter = rateLimit({

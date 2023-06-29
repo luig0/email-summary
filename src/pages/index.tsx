@@ -8,8 +8,8 @@ import Container from 'react-bootstrap/Container';
 import Row from 'react-bootstrap/Row';
 import Col from 'react-bootstrap/Col';
 
-import * as db from '@/lib/database/Adapter';
-import * as messages from '@/lib/Messages';
+import * as db from '@/common/utils/database/Adapter';
+import * as messages from '@/common/Messages';
 import LoginForm from '@/modules/auth/LoginForm';
 import RegistrationForm from '@/modules/auth/RegistrationForm';
 

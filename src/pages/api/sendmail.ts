@@ -1,9 +1,9 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import type { Transaction, TransactionsGetRequest } from 'plaid';
 
-import * as db from '@/lib/database/Adapter';
-import type { GetMailerDataResponse } from '@/lib/database/Adapter';
-import * as messages from '@/lib/Messages';
+import * as db from '@/common/utils/database/Adapter';
+import type { GetMailerDataResponse } from '@/common/utils/database/Adapter';
+import * as messages from '@/common/Messages';
 import { sendMail } from '@/lib/NodeMailer';
 import plaidClient from '@/lib/PlaidApiClient';
 

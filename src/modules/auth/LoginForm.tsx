@@ -3,7 +3,7 @@ import { useState } from 'react';
 import Form from 'react-bootstrap/Form';
 import Button from 'react-bootstrap/Button';
 
-import * as messages from '@/lib/Messages';
+import * as messages from '@/common/Messages';
 
 interface LoginFormProps {
   setShowRegistrationForm: (arg: boolean) => void;
