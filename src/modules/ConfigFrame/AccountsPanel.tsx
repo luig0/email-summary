@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import styles from './ConfigPanel.module.css';
+import styles from './ConfigFrame.module.css';
 
 import Button from 'react-bootstrap/Button';
 import Table from 'react-bootstrap/Table';
@@ -26,7 +26,7 @@ const removeAccessToken = async (accessTokenUuid: string, fetchAccounts: () => v
   if (fetchResult.ok) await fetchAccounts();
 };
 
-const ReauthorizeAccountsPanel = (props: ReauthorizeAccountsPanelProps) => (
+const ReauthorizeAccountsNotification = (props: ReauthorizeAccountsPanelProps) => (
   <div style={{ background: '#ffc107' }} className="mb-5">
     <Table borderless className="mt-0">
       <thead>
@@ -91,12 +91,13 @@ const AccountsPanel = (props: AccountsPanelProps) => {
   return (
     <>
       {expiredConnections.length > 0 && (
-        <ReauthorizeAccountsPanel
+        <ReauthorizeAccountsNotification
           setIsLoading={setIsLoading}
           expiredConnections={expiredConnections}
           fetchAccounts={fetchAccounts}
         />
       )}
+      
       <Table borderless className="m-0">
         <tbody>
           <tr>

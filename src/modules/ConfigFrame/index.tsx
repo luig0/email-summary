@@ -1,5 +1,5 @@
 import { useRouter } from 'next/router';
-import styles from './ConfigPanel.module.css';
+import styles from './ConfigFrame.module.css';
 import { useEffect, useState } from 'react';
 
 import Container from 'react-bootstrap/Container';
@@ -8,14 +8,14 @@ import Col from 'react-bootstrap/Col';
 import Button from 'react-bootstrap/Button';
 
 import type { AccountData } from '@/pages/api/accounts';
-import AccountsPane from '@/modules/ConfigPanel/AccountsPane';
+import AccountsPane from '@/modules/ConfigFrame/AccountsPanel';
 import LinkAccounts from '@/common/components/LinkAccounts';
 
 interface ConfigPanelProps {
   emailAddress: string;
 }
 
-const ConfigPanel = (props: ConfigPanelProps) => {
+const ConfigFrame = (props: ConfigPanelProps) => {
   const fetchAccounts = async () => {
     setIsLoading(true);
 
@@ -73,4 +73,4 @@ const ConfigPanel = (props: ConfigPanelProps) => {
   );
 };
 
-export default ConfigPanel;
+export default ConfigFrame;

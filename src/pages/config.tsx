@@ -1,6 +1,6 @@
 import { GetServerSideProps } from 'next';
 
-import ConfigPanel from '@/modules/ConfigPanel/';
+import ConfigFrame from '@/modules/ConfigFrame/';
 import * as db from '@/lib/database/Adapter';
 
 interface HomeProps {
@@ -33,6 +33,6 @@ export const getServerSideProps: GetServerSideProps = async ({ req }) => {
   }
 };
 
-const Config = (props: HomeProps) => <ConfigPanel emailAddress={props.emailAddress} />;
+const Config = (props: HomeProps) => <ConfigFrame emailAddress={props.emailAddress} />;
 
 export default Config;
