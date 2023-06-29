@@ -2,7 +2,7 @@ import bcrypt from 'bcrypt';
 import type { NextApiRequest, NextApiResponse } from 'next';
 
 import * as db from '@/common/utils/database/Adapter';
-import { SESSION_EXPIRY_PERIOD } from '@/Constants';
+import { SESSION_EXPIRY_PERIOD } from '@/common/Constants';
 import * as messages from '@/common/Messages';
 import rateLimit from '@/modules/auth/api/RateLimit';
 
