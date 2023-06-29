@@ -6,7 +6,7 @@ import Table from 'react-bootstrap/Table';
 import Spinner from 'react-bootstrap/Spinner';
 
 import type { AccountData } from '@/pages/api/accounts';
-import LinkAccounts from '@/common/components/LinkAccounts';
+import LinkAccounts from './LinkAccounts';
 
 interface ReauthorizeAccountsPanelProps {
   setIsLoading: (arg: boolean) => void;
@@ -97,7 +97,7 @@ const AccountsPanel = (props: AccountsPanelProps) => {
           fetchAccounts={fetchAccounts}
         />
       )}
-      
+
       <Table borderless className="m-0">
         <tbody>
           <tr>

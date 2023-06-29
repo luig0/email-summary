@@ -9,7 +9,7 @@ import Button from 'react-bootstrap/Button';
 
 import type { AccountData } from '@/pages/api/accounts';
 import AccountsPane from '@/modules/ConfigFrame/AccountsPanel';
-import LinkAccounts from '@/common/components/LinkAccounts';
+import LinkAccounts from './LinkAccounts';
 
 interface ConfigPanelProps {
   emailAddress: string;
